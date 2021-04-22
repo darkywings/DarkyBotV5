@@ -1,0 +1,11 @@
+{
+    "settings": {
+        "upd_gr_acskeys": 50,
+        "upd_gr_acskeys_msg": true,
+        "reconnect_msg": true,
+        "exc_msg": true,
+        "snd_msgs": [507365405, 305438383],
+        "command_assoc": {}
+    },
+    "admin_users": [507365405]
+}

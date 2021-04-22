@@ -1,4 +1,4 @@
-`Darky-Bot V4.0.0 by Darky(https://vk.com/id507365405)`
+`Darky-Bot V5.0.0 by Darky(https://vk.com/id507365405)`
 
 ## Описание
 Чат-бот Дарки для вк.

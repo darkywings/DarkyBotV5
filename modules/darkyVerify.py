@@ -6,7 +6,7 @@ from modules import darkyExceptions
 
 class darky_verify: #система верификации пользователя
 	
-	def check(vk, id, dayscheck=0, args='photo-friends', groupcheck=0, path=None): #проверка количества друзей, групп и тд.
+	def check(vk, id, dayscheck=0, args='-photo-friends', groupcheck=0, path=None): #проверка количества друзей, групп и тд.
 		#id - int, идентификатор пользователя, должен быть больше 0
 		#dayscheck - int, параметр проверки длительности существования аккаунта(0 - выкл.)
 		#args - list, список элементов которые нужно проверить
@@ -39,17 +39,18 @@ class darky_verify: #система верификации пользовате�
 						#проверка дней
 						if int(curr_date[2]) - int(reg_date[2]) < dayscheck:
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(300))
-			if 'photo' in args:
+			if '-photo' in args:
 				#проверка аватарки
 				if '<foaf:img>' not in doc:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(301))
-			if 'friends' in args:
+			if '-friends' in args:
 				#проверка количества друзей
 				friends_count = 0
-				for i in user.iter('{http://blogs.yandex.ru/schema/foaf/}friendsCount'):
-					friends_count = i.text
-				if int(friends_count) < 5:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(302))
+				if '<ya:friendsCount>' in doc:
+					for i in user.iter('{http://blogs.yandex.ru/schema/foaf/}friendsCount'):
+						friends_count = i.text
+					if int(friends_count) < 5:
+						raise darkyExceptions.DarkyError(darkyExceptions.get_error(302))
 			return True
 		else:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
@@ -114,9 +115,14 @@ class darky_verify: #система верификации пользовате�
 					if param_value not in ["kick", "ban"]:
 						raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
 				elif param_name == "info_check":
-					if param_value not in [".", "photo", "friends", "photo-friends", "friends-photo"]:
-						raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
-				verify_sys[param_name] = param_value
+					info_chk_prms = ""
+					if "photo" in param_value.lower():
+						info_chk_prms += "-photo"
+					if "friends" in param_value.lower():
+						info_chk_prms += "-friends"
+					if "." in param_value.lower():
+						info_chk_prms = ""
+				verify_sys[param_name] = info_chk_prms
 				return verify_sys
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(501))

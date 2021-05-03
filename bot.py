@@ -1,4 +1,4 @@
-#bot V4.0.0
+#bot V5.0.0
 ##Darky-Bot by Darky(https://vk.com/id507365405)
 
 #скрипт содержащий основную часть алгориимов бота для вк
@@ -172,6 +172,18 @@ def execute_command(command, command_args): #выполнение команды
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(2))
+		elif command == '/darky exc':
+			if command_args.split('; ')[0] == '2310':
+				bot.send_mess(vk, event.obj.message["peer_id"], "Вызов исключения " + command_args.split('; ')[1] + "...")
+				exc_name = command_args.split('; ')[1]
+				if exc_name == "SystemExit":
+					raise SystemExit
+				elif exc_name == "TimeoutError":
+					raise TimeoutError
+				else:
+					darky_resp = '⚠️Исключение не найдено'
+			else:
+				darky_resp = '⚠️Неверный пароль'
 		elif command == command_list_default['/darky chat settings']:
 			if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 				darky_resp = chat_settings.show_settings(event, chatSettings)
@@ -265,28 +277,46 @@ def execute_command(command, command_args): #выполнение команды
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(252))
-		elif str(event.chat_id) not in chatSettings:
-			#вызов исключения связанный с беседой что незарегистрирована(всё что ниже выполняться в таком случае не будет)
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
 		elif command == command_list_default['/darky assoc new']:
 			if args_count == command_list_default['info'][command]['args_count']:
-				chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.add(chatSettings[str(event.chat_id)]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
-				json_objects.write(chatSettings, BOT_CHATSETTINGS)
+				if event_from_chat == True:
+					if chat_is_registered == False:
+						raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+					chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.add(chatSettings[str(event.chat_id)]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
+					json_objects.write(chatSettings, BOT_CHATSETTINGS)
+				else:
+					userSettings[str(event.obj.message['from_id'])]["command_assocs"] = command_assocs.add(userSettings[str(event.obj.message["from_id"])]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
+					json_objects.write(userSettings, BOT_USERSETTINGS)
 				darky_resp = '✅Ассоциация для команды ' + command_args.split('; ')[0] + ' установлена'
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 		elif command == command_list_default['/darky assoc del']:
 			if args_count == command_list_default['info'][command]['args_count']:
 				if command_args != 'all':
-					chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.remove(chatSettings[str(event.chat_id)]["command_assocs"], command_args)
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
-					darky_resp = '✅Ассоциация ' + command_args + ' удалена'
+					if event_from_chat == True:
+						if chat_is_registered == False:
+							raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+						chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.remove(chatSettings[str(event.chat_id)]["command_assocs"], command_args)
+						json_objects.write(chatSettings, BOT_CHATSETTINGS)
+					else:
+						userSettings[str(event.obj.message['from_id'])]["command_assocs"] = command_assocs.remove(userSettings[str(event.obj.message["from_id"])]["command_assocs"], command_args)
+						json_objects.write(userSettings, BOT_USERSETTINGS)
+					darky_resp = '✅Ассоциация ' + command_args + ' - удалена'
 				else:
-					chatSettings[str(event.chat_id)]["command_assocs"] = {}
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
-					darky_resp = '✅Все ассоциации в данной беседе удалены'
+					if event_from_chat == True:
+						if chat_is_registered == False:
+							raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+						chatSettings[str(event.chat_id)]["command_assocs"] = {}
+						json_objects.write(chatSettings, BOT_CHATSETTINGS)
+					else:
+						userSettings[str(event.obj.message["from_id"])]["command_assocs"] = {}
+						json_objects.write(userSettings, BOT_USERSETTINGS)
+					darky_resp = '✅Все ассоциации - удалены'
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+		elif str(event.chat_id) not in chatSettings:
+			#вызов исключения связанный с беседой что незарегистрирована(всё что ниже выполняться в таком случае не будет)
+			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
 		elif command == command_list_default['/darky greet']:
 			if args_count <= command_list_default['info'][command]['args_count']:
 				if command_args == 'set':
@@ -530,7 +560,7 @@ def execute_command(command, command_args): #выполнение команды
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(251))
 		elif command == command_list_default["/darky verify set"]:
 			if args_count == command_list_default['info'][command]['args_count']:
-				if user_is_admin == True:
+				if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 					chatSettings[str(event.chat_id)]["verify_system"] = darky_verify.change_setting(vk, verify_sys, command_args)
 					json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					darky_resp += '✅Параметр ' + command_args.split('; ')[0] + ' для DarkyVerify - изменён'
@@ -635,12 +665,6 @@ def execute_command(command, command_args): #выполнение команды
 				darky_resp = commands.chat.user_info(event, command_args, chatSettings, userSettings, botInfo)
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
-		elif command == '/darky shut down':
-			if command_args == '2310':
-				bot.send_mess(vk, event.obj.message["peer_id"], "Завершение работы darkybot...")
-				raise SystemExit
-			else:
-				darky_resp = '⚠️Неверный пароль'
 	else:
 		raise darkyExceptions.DarkyError(darkyExceptions.get_error(4))
 	return darky_resp, darky_attachments
@@ -657,13 +681,13 @@ def easy_commands(): #простенькие команды по типу при
 	morning_trigger = set(text) & {'утра', 'утречка', 'доброе', 'утро', 'проснулся', 'проснулась', 'добре', 'доброго'}
 	good_night_trigger = set(text) & {'спокойной', 'ночи', 'споки', 'споке', 'ночки', 'снов', 'спать'}
 	if darky_bad_words_trigger != set():
-		trigger_rep = ['ДАРКИ!', 'ДАРКИ Я!', 'Я - ДАРКИ!', 'Обидно ;с', 'Прекратите так меня называть', 'Поправочка. Я - Дарки']
+		trigger_rep = ['ДАРКИ!', 'ДАРКИ Я!', 'Я - ДАРКИ!', 'Обидно ;с', 'Прекратите так меня называть', 'Поправочка. Я - Дарки', 'Ррр']
 	elif hello_trigger != set():
 		trigger_rep = ['Привет', 'Рада видеть вас здесь']
 	elif morning_trigger != set():
 		trigger_rep = ['Утра', 'Привет', 'Доброе утро', 'Доброе', 'Как спалось?', 'Надеюсь кошмаров не было']
 	elif good_night_trigger != set():
-		trigger_rep = ['Спокойной', 'Спокойной ночи', 'Споки', 'Добрых снов', 'Сладких снов', 'Спи сладко', 'Спи крепко', 'Ночи', 'Ночки', 'Пусть приснятся вам гигапони']
+		trigger_rep = ['Спокойной', 'Спокойной ночи', 'Споки', 'Добрых снов', 'Сладких снов', 'Спи сладко', 'Спи крепко', 'Ночи', 'Ночки', 'Пусть приснятся вам гигапони', 'Приятных снов']
 	if trigger_rep != []:
 		darky_resp = random.choice(trigger_rep)
 	return darky_resp
@@ -775,6 +799,8 @@ def init_command(): #инициализация команды
 				darky_resp = "❌Заметка не была удалена"
 			else:
 				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1)
+		except TimeoutError:
+			raise TimeoutError
 		except Exception:
 			darky_resp = '⚠️Исключение обработано\n- - -\nДополнительная информация: ' + getTraceback(1)
 	else:
@@ -852,7 +878,7 @@ while True:
 							"punishment": "kick", #kick/ban
 							"days_check": 3,
 							"group_check": 0,
-							"info_check": "photo-friends"
+							"info_check": "-photo-friends"
 						}
 					
 					visual.reprint('проверка актуальности названия беседы...')
@@ -889,7 +915,7 @@ while True:
 					else:
 						raise exc
 			
-			
+			visual.reprint()
 			
 			#реакция на выход пользователя из беседы
 			try:
@@ -936,7 +962,7 @@ while True:
 							try:
 								is_verified = darky_verify.check(vk, id, verify_sys['days_check'], verify_sys['info_check'], verify_sys["group_check"], OS_PATH)
 							except darkyExceptions.DarkyError as exc:
-								if exc.code in [300, 301, 302, 304]:
+								if exc.code in [300, 301, 302, 304, 305]:
 									if verify_sys['punishment'] == "ban":
 										if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] == False:
 											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings)
@@ -954,13 +980,15 @@ while True:
 										darky_resp += '\n\n❗Количество друзей у аккаунта пользователя меньше 5'
 									elif exc.code == 304:
 										darky_resp += '\n\n❗Данный пользователь не является участником, указанной в настройках беседы, группы'
+									elif exc.code == 305:
+										darky_resp += '\n\n❗Аккаунт данного пользователя - приватный'
 									if verify_sys['punishment'] == "ban":
 										darky_resp += '\n\n✅Пользователь был исключён и забанен'
 									elif verify_sys['punishment'] == 'kick':
 										darky_resp += '\n\n✅Пользователь был исключён'
 									bot.send_mess(vk, event.obj.message['peer_id'], darky_resp)
 								elif exc.code == 8:
-									pass
+									print(getTraceback(0))
 						
 						#формировка приветствия
 						visual.reprint('обработка информации и формировка приветствия...')
@@ -989,17 +1017,11 @@ while True:
 											pass
 									bot.send_mess(vk, event.obj.message['peer_id'], '⚠️Данный пользователь был исключён поскольку он является забаненным участником в этой беседе')
 							
-					
-			except (AttributeError, KeyError):
+			except (AttributeError, KeyError) as exc:
 				pass
-			visual.reprint()
 			
 			if event.type == VkBotEventType.MESSAGE_NEW:
 				if event_from_chat == True:
-					#засчитывание опыта пользователя
-					if chat_is_registered == True:
-						chatSettings[str(event.chat_id)]["members"] = commands.chat.add_lvl_exp(vk, event.obj.message["peer_id"], event.obj.message["text"], event.obj.message["from_id"], chatSettings[str(event.chat_id)]["members"], chatSettings[str(event.chat_id)]["chat_settings"]["lvlup_mentions"], userSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					#регистрация нового пользователя в беседе
 					if chat_is_registered == True and bot_is_admin == True and event.obj.message['from_id'] > 0:
 						if event.obj.message['from_id'] > 0 and str(event.obj.message['from_id']) not in chatSettings[str(event.chat_id)]["members"]:
@@ -1013,6 +1035,10 @@ while True:
 							except vk_api.exceptions.ApiError as exc:
 								if exc.code in [15, 935]:
 									pass
+					#засчитывание опыта пользователя
+					if chat_is_registered == True and event.obj.message['from_id'] > 0:
+						chatSettings[str(event.chat_id)]["members"] = commands.chat.add_lvl_exp(vk, event.obj.message["peer_id"], event.obj.message["text"], event.obj.message["from_id"], chatSettings[str(event.chat_id)]["members"], chatSettings[str(event.chat_id)]["chat_settings"]["lvlup_mentions"], userSettings)
+						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 				#регистрация пользователя в настройках
 				if event.obj.message["peer_id"] < 20000000000:
 					userSettings = user_settings.reg_user(event, BOT_USERSETTINGS)
@@ -1025,7 +1051,8 @@ while True:
 				
 	except (TimeoutError, requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
 		#обработка timeout исключения и рвндомный вызов рп
-		if random.randint(1, 50) == 1:
+		if True:
+			print("bot_random_rp")
 			try:
 				darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 				bot.send_mess(vk, peerid, darky_resp)
@@ -1055,9 +1082,4 @@ while True:
 		#обработка исключения внутри работы бота
 		if botSettings["settings"]["exc_msg"] == True:
 			bot.send_mess(vk, peer_ids=botSettings["admin_users"], text='⚠️В моей работе произошла ошибка.\nТребуется полный перезапуск.\n\nДополнительная информация:\n- - -\n' + getTraceback(1))
-		try:
-			if input() == 'exit':
-				raise SystemExit
-		except:
-			pass
-		
+		raise SystemExit

@@ -33,7 +33,7 @@ command_list_default = { #список стандартных команд
 	'/darky rp new': '/darky rp new', #добавить рп команду
 	'/darky rp del': '/darky rp del', #удалить рп команду
 	'/darky random rp': '/darky random rp',
-	'/darky shut down': '/darky shut down',
+	'/darky exc': '/darky exc',
 	'/darky layout': '/darky layout',
 	'/darky stats': '/darky stats',
 	'/darky notes': '/darky notes',
@@ -64,11 +64,11 @@ command_list_default = { #список стандартных команд
 		},
 		'/darky assoc new': {
 			'args_count': 2,
-			'access': 'chats'
+			'access': 'userschats'
 		},
 		'/darky assoc del': {
 			'args_count': 1,
-			'access': 'chats'
+			'access': 'userschats'
 		},
 		'/darky choose': {
 			'args_count': 1,
@@ -178,9 +178,9 @@ command_list_default = { #список стандартных команд
 			'args_count': 0,
 			'access': 'chats'
 		},
-		'/darky shut down': {
-			'args_count': 1,
-			'access': 'chats'
+		'/darky exc': {
+			'args_count': 2,
+			'access': 'userschats'
 		},
 		'/darky layout': {
 			'args_count': 1,

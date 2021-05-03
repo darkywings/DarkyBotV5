@@ -38,7 +38,7 @@ class drgt:
 			all_words = mess_data.read()
 			mess_data.close()
 		#создание списка для удобства генерации
-		word_list = all_words.lstrip(' ').split(' ')
+		word_list = all_words.replace('\n', ' ').lstrip(' ').split(' ')
 		if len(word_list) < 20:
 			darky_resp = '⚠️Я пока собрала недостаточно слов для более менее хорошей генерации. Дайте мне собрать больше данных о беседе и я смогу сгенерировать что-нибудь'
 			return darky_resp
@@ -63,5 +63,5 @@ class drgt:
 		else:
 			id = event.obj.message['from_id']
 		os.remove(path + '/' + str(id) + '.ini')
-		darky_resp = '✅Собранные для генерации предложений данные удалены'
+		darky_resp = '✅Собранные для генерации предложений данные - удалены'
 		return darky_resp

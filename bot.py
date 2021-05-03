@@ -906,6 +906,7 @@ while True:
 			
 			
 			if random.randint(1, 50) == 1:
+				print("bot_random_rp")
 				try:
 					darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 					bot.send_mess(vk, peerid, darky_resp)
@@ -1051,7 +1052,7 @@ while True:
 				
 	except (TimeoutError, requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
 		#обработка timeout исключения и рвндомный вызов рп
-		if True:
+		if random.randint(1, 25) == 1:
 			print("bot_random_rp")
 			try:
 				darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)

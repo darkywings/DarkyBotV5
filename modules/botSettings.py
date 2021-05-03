@@ -113,7 +113,7 @@ class chat_settings:
 			"punishment": "ban", #kick/ban
 			"days_check": 3,
 			"group_check": 0, #проверка состоит ли человек в указанной группе
-			"info_check": "photo-friends"
+			"info_check": "-photo-friends"
 		},
 		"command_assocs": {}, #ассоциации к командам
 		"greeting": {}, #приветствие в беседе

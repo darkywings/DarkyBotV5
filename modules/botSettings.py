@@ -259,6 +259,17 @@ class chat_settings:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(500))
 		else:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+	
+	def set_preset(presets, settings, command_args):
+		#presets - объект, содержащий в себе пресеты для настроек бесед
+		#settings - настройки текущей беседы
+		#проверка наличия указанного пресета в базе данных
+		if command_args.split('; ')[1] in presets:
+			#установка пресета в чат
+			settings["chat_settings"] = presets[command_args.split('; ')[1]]["chat_settings"]
+			return settings
+		else:
+			raise darkyExceptions.DarkyError(darkyExceptions.get_error(103))
 
 
 
@@ -267,6 +278,7 @@ class user_settings:
 	d_user_settings = {
 		"update_news": True, #новости о боте
 		"mentions": True, #упоминания ботом
+		"rp_access": "all", #режим доступа к рп (off/only_users/only_bot/all)
 		"notes": [], #список артов художника
 		"command_assocs": {} #ассоциации к командам в личных сообщениях пользователя
 	}
@@ -292,6 +304,7 @@ class user_settings:
 			result += '⚙️Ваши настройки:\n'
 			result += '🔹Новости о боте:\n' + bot_settings.optionValue_visual(settings["update_news"]) + '\n'
 			result += '🔹Упоминания ботом:\n' + bot_settings.optionValue_visual(settings["mentions"]) + '\n'
+			result += '🔹Доступ рп:\n' + bot_settings.optionValue_visual(settings["rp_access"]) + '\n'
 			return result
 		else:
 			pass
@@ -318,7 +331,9 @@ class user_settings:
 				#сравнение классов старого значения и нового
 				if type(param_value) == type(settings[param_name]):
 					#сравнение доступности значений
-					#--- его нет, но оно будет ---
+					if param_name == 'rp_access':
+						if param_value not in ['off', 'only_users', 'only_bot', 'all']:
+							raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
 					#изменение параметра
 					settings[param_name] = param_value
 					userSettings[str(event.obj.message['from_id'])] = settings

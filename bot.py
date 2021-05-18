@@ -18,6 +18,9 @@ try:
 	#список стандартных команд бота
 	visual.reprint('bot_files.cmd_list.command_list_default')
 	from bot_files.cmd_list import command_list_default
+	#пресеты настроек бота
+	visual.reprint('bot_files.cmd_list.chat_settings_presets')
+	from bot_files.cmd_list import chat_settings_presets
 	#возврат трейсбека
 	visual.reprint('modules.getTraceback')
 	from modules.getTraceback import getTraceback
@@ -192,8 +195,13 @@ def execute_command(command, command_args): #выполнение команды
 		elif command == command_list_default['/darky chat set']:
 			if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 				if args_count == command_list_default['info'][command]['args_count']:
-					chatSettings = chat_settings.change_setting(vk, event, command_args, chatSettings, BOT_CHATSETTINGS)
-					darky_resp = '✅Настройка ' + str(command_args.split('; ')[0]) + ' изменена'
+					if command_args.split('; ')[0] == "preset":
+						chatSettings[str(event.chat_id)] = chat_settings.set_preset(chat_settings_presets, chatSettings[str(event.chat_id)], command_args)
+						json_objects.write(chatSettings, BOT_CHATSETTINGS)
+						darky_resp = '✅Пресет настроек ' + command_args.split('; ')[1] + ' - успешно установлен в вашу беседу'
+					else:
+						chatSettings = chat_settings.change_setting(vk, event, command_args, chatSettings, BOT_CHATSETTINGS)
+						darky_resp = '✅Настройка ' + str(command_args.split('; ')[0]) + ' изменена'
 				else:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 			else:
@@ -264,7 +272,7 @@ def execute_command(command, command_args): #выполнение команды
 				darky_resp = drgt.generate(event, BOT_MESS, event_from_chat)
 		elif command == command_list_default['/darky notes']:
 			if args_count >= command_list_default['info'][command]['args_count']:
-				if command_args.split('; ')[0] in ["add", "del"]:
+				if command_args.split('; ')[0] in ["add", "del", "rename", "edit"]:
 					if command_args.split('; ')[0] == "add":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.add(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 						json_objects.write(userSettings, BOT_USERSETTINGS)
@@ -273,6 +281,14 @@ def execute_command(command, command_args): #выполнение команды
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.delete(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 						json_objects.write(userSettings, BOT_USERSETTINGS)
 						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' удалена'
+					elif command_args.split('; ')[0] == "rename":
+						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.rename(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
+						json_objects.write(userSettings, BOT_USERSETTINGS)
+						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' переименнована'
+					elif command_args.split('; ')[0] == "edit":
+						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.edit(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
+						json_objects.write(userSettings, BOT_USERSETTINGS)
+						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' изменено'
 				else:
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 			else:
@@ -659,12 +675,26 @@ def execute_command(command, command_args): #выполнение команды
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(10))
 		elif command == command_list_default['/darky random rp']:
-			darky_resp = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings, True)
+			try:
+				darky_resp = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings, True)
+			except darkyExceptions.DarkyError as exc:
+				if exc.code in [454]:
+					darky_resp = "⚠️Выбранный пользователь ограничил использование ролевых команд на себе"
+				elif exc.code in [12]:
+					darky_resp = "⚠️Выбранный идентификатор принадлежит мне самой"
+				else:
+					raise darkyExceptions.DarkyError(darkyExceptions.get_error(exc.code))
 		elif command == command_list_default['/darky stats']:
 			if args_count <= command_list_default['info'][command]['args_count']:
 				darky_resp = commands.chat.user_info(event, command_args, chatSettings, userSettings, botInfo)
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+		elif command == command_list_default['/darky top']:
+			if args_count > command_list_default['info'][command]['args_count']:
+				raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			if command_args == "":
+				command_args = "5"
+			darky_resp = commands.chat.get_top_members(vk, chatSettings[str(event.chat_id)]["members"], command_args, userSettings, chatSettings[str(event.chat_id)]["chat_settings"]["nicknames"])
 	else:
 		raise darkyExceptions.DarkyError(darkyExceptions.get_error(4))
 	return darky_resp, darky_attachments
@@ -678,7 +708,7 @@ def easy_commands(): #простенькие команды по типу при
 	#set(<текст>) & {список слов} - определяет есть ли слова в тексте или нет, возвращает также {} содержащий в себе список найденных слов
 	darky_bad_words_trigger = set(text) & {'дорки', 'дурки', 'доркя', 'дуркя', 'дорке'}
 	hello_trigger = set(text) & {'привет', 'приветствую', 'здравствуйте', 'преет', 'преть', 'приветик', 'приветики', 'здрасте', 'хай', 'хелло', 'ку'}
-	morning_trigger = set(text) & {'утра', 'утречка', 'доброе', 'утро', 'проснулся', 'проснулась', 'добре', 'доброго'}
+	morning_trigger = set(text) & {'утра', 'утречка', 'доброе', 'утро', 'проснулся', 'проснулась', 'добре', 'доброго', 'проснувся', 'проснувась'}
 	good_night_trigger = set(text) & {'спокойной', 'ночи', 'споки', 'споке', 'ночки', 'снов', 'спать'}
 	if darky_bad_words_trigger != set():
 		trigger_rep = ['ДАРКИ!', 'ДАРКИ Я!', 'Я - ДАРКИ!', 'Обидно ;с', 'Прекратите так меня называть', 'Поправочка. Я - Дарки', 'Ррр']
@@ -797,6 +827,10 @@ def init_command(): #инициализация команды
 				darky_resp = "⚠️Заголовок для этой заметки занят, попробуйте другой"
 			elif exc.code == 604:
 				darky_resp = "❌Заметка не была удалена"
+			elif exc.code == 155:
+				darky_resp = "⚠️В приветствии текущей беседы нет какого либо прикреплённого объекта типа картинки и тп."
+			elif exc.code == 103:
+				darky_resp = "⚠️Пресета настроек " + command_args.split('; ')[1] + " не существует. Проверьте правильность написания названия пресета, возможно вы ошиблись"
 			else:
 				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1)
 		except TimeoutError:
@@ -818,6 +852,8 @@ def init_command(): #инициализация команды
 		except darkyExceptions.DarkyError as exc:
 			if exc.code == 6:
 				darky_resp = '⚠️Данного пользователя нет в беседе'
+			elif exc.code == 454:
+				darky_resp = "⚠️Данный пользователь ограничил использование рп на себе"
 			elif exc.code == 51:
 				pass
 			else:
@@ -834,6 +870,7 @@ def init_command(): #инициализация команды
 
 
 print('Всё готово')
+bot.send_mess(vk, botSettings["settings"]["snd_msgs"], "✅Я запущена и готова к работе")
 bd_date = 'null' #предотвращает ошибку в commands.easter_eggs.ee1() (лучше не трогать, одна строка не сильно мешает)
 
 #основной цикл
@@ -882,16 +919,23 @@ while True:
 						}
 					
 					visual.reprint('проверка актуальности названия беседы...')
-					if bot_is_admin == True and str(event.chat_id) in chatSettings and chatSettings[str(event.chat_id)]['chat_info']['title'] != chatObj[0]["chat_settings"]["title"]:
-						chatSettings[str(event.chat_id)]['chat_info']['title'] = chatObj[0]["chat_settings"]["title"]
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
+					if bot_is_admin == True and str(event.chat_id) in chatSettings:
+						if chatSettings[str(event.chat_id)]['chat_info']['title'] != chatObj[0]["chat_settings"]["title"]:
+							chatSettings[str(event.chat_id)]['chat_info']['title'] = chatObj[0]["chat_settings"]["title"]
+							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						
 						if random.randint(1, botSettings["settings"]["upd_gr_acskeys"]) == 1:
 							visual.reprint('обновление ключа доступа у прикрепленного объекта в приветствии')
-							chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
-							if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
-								bot.send_mess(vk, peer_ids=botSettings["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' обновлён')
+							try:
+								chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
+								json_objects.write(chatSettings, BOT_CHATSETTINGS)
+								if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
+									bot.send_mess(vk, peer_ids=botSettings["settings"]["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' обновлён')
+							except darkyExceptions.DarkyError as exc:
+								if exc.code in [150, 155]:
+									pass
+								else:
+									raise exc
 					else:
 						raise darkyExceptions.DarkyError(darkyExceptions.get_error(2))
 			except darkyExceptions.DarkyError as exc:
@@ -911,7 +955,7 @@ while True:
 					darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 					bot.send_mess(vk, peerid, darky_resp)
 				except darkyExceptions.DarkyError as exc:
-					if exc.code == 10:
+					if exc.code in [10, 12, 454]:
 						pass
 					else:
 						raise exc
@@ -1058,7 +1102,7 @@ while True:
 				darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 				bot.send_mess(vk, peerid, darky_resp)
 			except darkyExceptions.DarkyError as exc:
-				if exc.code == 10:
+				if exc.code in [10, 12, 454]:
 					pass
 				else:
 					raise exc

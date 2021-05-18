@@ -13,6 +13,7 @@ def get_error(error_code=0):
 		"9": "Wrong method params",
 		"10": "This command was deactivated",
 		"11": "User is admin",
+		"12": "Id is DarkyBot",
 		
 		"50": "Wrong association name",
 		"51": "Association for current command not found",
@@ -20,12 +21,14 @@ def get_error(error_code=0):
 		"100": "Chat is already registered",
 		"101": "Chat is not registered",
 		"102": "User is not registered in the chat",
+		"103": "This preset doesn't exist",
 		
 		"150": "Greeting does not exist",
 		"151": "Rules does not exist",
 		"152": "Greeting set error",
 		"153": "Rules set error",
 		"154": "Update access keys for greetings error",
+		"155": "Attachment in the greeting didn't set",
 		
 		"200": "User is already banned in this chat",
 		"201": "User is already unbanned in this chat",
@@ -36,6 +39,7 @@ def get_error(error_code=0):
 		"251": "Wrong args count(more than maximal)",
 		"252": "Wrong args count(less than minimal)",
 		"253": "Incorrect arguments for this command",
+		"254": "(top members list) Wrong value in argument",
 		
 		"300": "User not verified(Account was created in 2-10 last days)",
 		"301": "User not verified(Account doesn't have photo)",
@@ -49,17 +53,18 @@ def get_error(error_code=0):
 		"450": "This roleplay command is already exist",
 		"451": "This roleplay command is not exist",
 		"453": "Access denied: You don't have access to manage this rp command",
+		"454": "User closed his rp access",
 		
 		"500": "Invalid parameter name in bot settings",
 		"501": "Invalid value for parameter in bot settings",
 		"502": "Wrong param value in bot settings",
 		"503": "(DarkyVerify)Group not found",
 		
-		"600": "Art list is empty",
-		"601": "This art didn't found",
-		"602": "Incorrect art's title",
+		"600": "Notes list is empty",
+		"601": "This note didn't found",
+		"602": "Incorrect note's title",
 		"603": "This title is already used",
-		"604": "This art is didn't deleted"
+		"604": "This note is didn't deleted"
 	}
 	
 	if str(error_code) in errors:

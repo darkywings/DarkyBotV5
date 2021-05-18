@@ -37,6 +37,7 @@ command_list_default = { #список стандартных команд
 	'/darky layout': '/darky layout',
 	'/darky stats': '/darky stats',
 	'/darky notes': '/darky notes',
+	"/darky top": "/darky top",
 	'info': {
 		'/darky reg': {
 			'args_count': 0,
@@ -193,6 +194,89 @@ command_list_default = { #список стандартных команд
 		'/darky notes': {
 			'args_count': 1,
 			'access': 'userschats'
+		},
+		"/darky top": {
+			"args_count": 1,
+			"access": "chats"
+		}
+	}
+}
+
+chat_settings_presets = { #пресеты настроек беседы
+	"default": { #стандарт - выставляется при регистрации беседы
+		"chat_settings": {
+			"mention_in_greetings": True,
+            "lvlup_mentions": True,
+			"rp": True,
+			"rp_access": "admins",
+			"bot_rp": True,
+			"nicknames": True,
+			"nicknames_access": "off",
+			"easy_commands_react": True,
+			"kick_access": "admins",
+			"warn_access": "admins",
+			"ban_access": "admins",
+			"warn_limit": 5,
+			"warn_punishment": "ban",
+			"autokick": False,
+			"update_news": True
+		}
+	},
+	"free": { #свободный - всё включено и везде полностью открыт доступ
+		"chat_settings": {
+			"mention_in_greetings": True,
+            "lvlup_mentions": True,
+			"rp": True,
+			"rp_access": "all",
+			"bot_rp": True,
+			"nicknames": True,
+			"nicknames_access": "all",
+			"easy_commands_react": True,
+			"kick_access": "all",
+			"warn_access": "all",
+			"ban_access": "all",
+			"warn_limit": 5,
+			"warn_punishment": "none",
+			"autokick": False,
+			"update_news": True
+		}
+	},
+	"strict": { #строгий - только администрирование и ничего лишнего
+		"chat_settings": {
+			"mention_in_greetings": False,
+            "lvlup_mentions": False,
+			"rp": False,
+			"rp_access": "off",
+			"bot_rp": False,
+			"nicknames": False,
+			"nicknames_access": "off",
+			"easy_commands_react": False,
+			"kick_access": "admins",
+			"warn_access": "admins",
+			"ban_access": "admins",
+			"warn_limit": 5,
+			"warn_punishment": "ban",
+			"autokick": True,
+			"update_news": False
+		}
+	},
+	"all_off": { #выключенный - все настройки отключены и доступ полностью закрыт
+		"chat_settings": {
+			"mention_in_greetings": False,
+            "lvlup_mentions": False,
+			"rp": False,
+			"rp_access": "off",
+			"bot_rp": False,
+			"nicknames": False,
+			"nicknames_access": "off",
+			"easy_commands_react": False,
+			"kick_access": "off",
+			"warn_access": "off",
+			"ban_access": "off",
+			"warn_limit": 5,
+			"warn_punishment": "none",
+			"autokick": False,
+			"update_news": False
 		}
 	}
 }

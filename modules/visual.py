@@ -1,6 +1,7 @@
 import datetime
 
 def coloredText(text, textColor='white', bgColor='black'): #красит текст(аля красива)
+	#Работает ТОЛЬКО с кодировкой ANSII
 	#text - string, нужный текст
 	#textColor - string цвет текста
 	#backgroundColor - string цвет фона

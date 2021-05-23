@@ -160,12 +160,12 @@ class chat_settings:
 		}
 	
 	
-	def reg_chat(vk, event, path, settings=d_chat_settings): #регистрация беседы
+	def reg_chat(vk, event, path, chat_title, settings=d_chat_settings): #регистрация беседы
 		#path - должен быть BOT_CHATSETTINGS, это путь к настройкам всех бесед
 		chatSettings = json_objects.load(path)
 		if str(event.chat_id) not in chatSettings:
 			#сохранение названия беседы
-			settings["chat_info"]["title"] = vk.messages.getConversationsById(peer_ids = 2000000000 + event.chat_id)['items'][0]['chat_settings']['title']
+			settings["chat_info"]["title"] = chat_title
 			#получение списка участников и их регистрация в беседе
 			chat_members = vk.messages.getConversationMembers(peer_id=2000000000 + event.chat_id)
 			for current_member in range(len(chat_members['profiles'])):

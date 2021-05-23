@@ -169,7 +169,7 @@ def execute_command(command, command_args): #выполнение команды
 		if command == command_list_default['/darky reg']:
 			if bot_is_admin == True:
 				if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
-					chatSettings = chat_settings.reg_chat(vk, event, BOT_CHATSETTINGS)
+					chatSettings = chat_settings.reg_chat(vk, event, BOT_CHATSETTINGS, chatObj[0]["chat_settings"]["title"])
 					darky_resp = '✅Ваша беседа была зарегистрирована'
 				else:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
@@ -198,7 +198,7 @@ def execute_command(command, command_args): #выполнение команды
 					if command_args.split('; ')[0] == "preset":
 						chatSettings[str(event.chat_id)] = chat_settings.set_preset(chat_settings_presets, chatSettings[str(event.chat_id)], command_args)
 						json_objects.write(chatSettings, BOT_CHATSETTINGS)
-						darky_resp = '✅Пресет настроек ' + command_args.split('; ')[1] + ' - успешно установлен в вашу беседу'
+						darky_resp = '✅Пресет настроек ' + command_args.split('; ')[1] + ' успешно установлен в вашу беседу'
 					else:
 						chatSettings = chat_settings.change_setting(vk, event, command_args, chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Настройка ' + str(command_args.split('; ')[0]) + ' изменена'
@@ -209,7 +209,7 @@ def execute_command(command, command_args): #выполнение команды
 		elif command == command_list_default['/darky unreg']:
 			if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 				chatSettings = chat_settings.unreg_chat(event, BOT_CHATSETTINGS, chatSettings)
-				darky_resp = '❗Ваша беседа теперь не зарегистрирована. Большинство моего функционала недоступно для этой беседы'
+				darky_resp = '❗Ваша беседа теперь не зарегистрирована. Большинство моего функционала более недоступно для этой беседы'
 			else:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 		elif command == command_list_default['/darky verify settings']:
@@ -280,15 +280,15 @@ def execute_command(command, command_args): #выполнение команды
 					elif command_args.split('; ')[0] == "del":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.delete(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 						json_objects.write(userSettings, BOT_USERSETTINGS)
-						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' удалена'
+						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - удалена'
 					elif command_args.split('; ')[0] == "rename":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.rename(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 						json_objects.write(userSettings, BOT_USERSETTINGS)
-						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' переименнована'
+						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - переименнована'
 					elif command_args.split('; ')[0] == "edit":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.edit(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 						json_objects.write(userSettings, BOT_USERSETTINGS)
-						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' изменено'
+						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' - изменено'
 				else:
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 			else:
@@ -360,7 +360,7 @@ def execute_command(command, command_args): #выполнение команды
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
 							json_objects.write(chatSettings, BOT_CHATSETTINGS)
-							darky_resp = '✅Ключ доступа для прикреплённого в приветствии элемента обновлён'
+							darky_resp = '✅Ключ доступа для прикреплённого в приветствии элемента - обновлён'
 						else:
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 					else:
@@ -412,7 +412,7 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 					try:
 						commands.chat.kick(vk, event, command_args, chatSettings)
-						darky_resp = '✅Данный пользователь исключён'
+						darky_resp = '✅Пользователь - исключён'
 					except vk_api.exceptions.ApiError as exc:
 						if exc.code == 15:
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(11))
@@ -458,7 +458,7 @@ def execute_command(command, command_args): #выполнение команды
 						try:
 							chatSettings = commands.chat.ban(vk, event, command_args, chatSettings)
 							json_objects.write(chatSettings, BOT_CHATSETTINGS)
-							darky_resp = '✅Данный пользователь забанен'
+							darky_resp = '✅Пользователь - забанен'
 						except vk_api.exceptions.ApiError as exc:
 							if exc.code == 15:
 								raise darkyExceptions.DarkyError(darkyExceptions.get_error(11))
@@ -481,7 +481,7 @@ def execute_command(command, command_args): #выполнение команды
 					else:
 						chatSettings = commands.chat.unban(event, command_args, chatSettings)
 						json_objects.write(chatSettings, BOT_CHATSETTINGS)
-						darky_resp = '✅Данный пользователь разбанен'
+						darky_resp = '✅Пользователь - разбанен'
 				else:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(2))
 			else:
@@ -654,7 +654,7 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.add(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
 					json_objects.write(chatSettings, BOT_CHATSETTINGS)
-					darky_resp = '✅Данная рп команда добавлена'
+					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - добавлена'
 				else:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 			else:
@@ -669,7 +669,7 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(darkyExceptions.get_error(3))
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.delete(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
 					json_objects.write(chatSettings, BOT_CHATSETTINGS)
-					darky_resp = '✅Данная рп команда удалена'
+					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - удалена'
 				else:
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 			else:
@@ -878,6 +878,7 @@ while True:
 	try:
 		for event in botlongpoll.listen():
 			
+			
 			botInfo = json_objects.load(BOT_INFO)
 			
 			visual.reprint('загрузка chatSettings...')
@@ -930,7 +931,7 @@ while True:
 								chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
 								json_objects.write(chatSettings, BOT_CHATSETTINGS)
 								if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
-									bot.send_mess(vk, peer_ids=botSettings["settings"]["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' обновлён')
+									bot.send_mess(vk, peer_ids=botSettings["settings"]["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' - обновлён')
 							except darkyExceptions.DarkyError as exc:
 								if exc.code in [150, 155]:
 									pass
@@ -1007,7 +1008,7 @@ while True:
 							try:
 								is_verified = darky_verify.check(vk, id, verify_sys['days_check'], verify_sys['info_check'], verify_sys["group_check"], OS_PATH)
 							except darkyExceptions.DarkyError as exc:
-								if exc.code in [300, 301, 302, 304, 305]:
+								if exc.code in [300, 301, 302, 304]:
 									if verify_sys['punishment'] == "ban":
 										if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] == False:
 											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings)
@@ -1025,8 +1026,6 @@ while True:
 										darky_resp += '\n\n❗Количество друзей у аккаунта пользователя меньше 5'
 									elif exc.code == 304:
 										darky_resp += '\n\n❗Данный пользователь не является участником, указанной в настройках беседы, группы'
-									elif exc.code == 305:
-										darky_resp += '\n\n❗Аккаунт данного пользователя - приватный'
 									if verify_sys['punishment'] == "ban":
 										darky_resp += '\n\n✅Пользователь был исключён и забанен'
 									elif verify_sys['punishment'] == 'kick':
@@ -1060,12 +1059,15 @@ while True:
 									except vk_api.exceptions.ApiError as exc:
 										if exc.code in [15, 935]:
 											pass
-									bot.send_mess(vk, event.obj.message['peer_id'], '⚠️Данный пользователь был исключён поскольку он является забаненным участником в этой беседе')
+									bot.send_mess(vk, event.obj.message['peer_id'], '⚠️Данный пользователь - исключён\nПричина: получен бан в этой беседе')
 							
 			except (AttributeError, KeyError) as exc:
 				pass
 			
 			if event.type == VkBotEventType.MESSAGE_NEW:
+				if botSettings["settings"]["testing_mode"] == True:
+					if event.obj.message["peer_id"] not in botSettings["settings"]["testing_ids"]:
+						raise darkyExceptions.DarkyError(darkyExceptions.get_error(13))
 				if event_from_chat == True:
 					#регистрация нового пользователя в беседе
 					if chat_is_registered == True and bot_is_admin == True and event.obj.message['from_id'] > 0:
@@ -1076,7 +1078,7 @@ while True:
 						if chatSettings[str(event.chat_id)]["members"][str(event.obj.message['from_id'])]["is_banned"] == True:
 							try:
 								vk.messages.removeChatUser(chat_id = event.chat_id, member_id = event.obj.message['from_id'])
-								bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text='⚠️Данный пользователь был исключён поскольку он является забаненным участником в этой беседе')
+								bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text='⚠️Данный пользователь - исключён\nПричина: получен бан в этой беседе')
 							except vk_api.exceptions.ApiError as exc:
 								if exc.code in [15, 935]:
 									pass
@@ -1093,7 +1095,10 @@ while True:
 				drgt.write_data(event, BOT_MESS)
 				#выполнение самих команд
 				init_command()
-				
+	
+	except darkyExceptions.DarkyError as exc:
+		if exc.code == 13:
+			pass
 	except (TimeoutError, requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
 		#обработка timeout исключения и рвндомный вызов рп
 		if random.randint(1, 25) == 1:

@@ -14,6 +14,7 @@ def get_error(error_code=0):
 		"10": "This command was deactivated",
 		"11": "User is admin",
 		"12": "Id is DarkyBot",
+		"13": "Bot in testing mode right now!",
 		
 		"50": "Wrong association name",
 		"51": "Association for current command not found",

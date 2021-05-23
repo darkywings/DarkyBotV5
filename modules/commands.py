@@ -40,7 +40,7 @@ class main_commands:
 				choose_list = args.split()
 		if len(choose_list) > 1:
 			choose_rep = random.choice(choose_list)
-			darky_resp = 'Я выбираю ' + str(choose_rep).lstrip(' ').rstrip(' ')
+			darky_resp = 'Я выбираю - ' + str(choose_rep).lstrip(' ').rstrip(' ')
 		else:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(252))
 		return darky_resp
@@ -56,7 +56,7 @@ class main_commands:
 		#args - высказывание
 		if args == '':
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
-		resp_list = ['❌Попытка ' + args + ' вышла неудачной', '✅Попытка ' + args + ' удачна']
+		resp_list = ['❌Попытка ' + args + ' вышла неудачной', '✅Попытка ' + args + ' - удачна']
 		darky_resp = random.choice(resp_list)
 		return darky_resp
 	
@@ -337,6 +337,7 @@ class chat: #работа с беседой и её участниками
 			out = "📊Статистика Дарки-бота:\n"
 			out += "🔹ID бота: -192784148\n"
 			out += "🔹Работает и разрабатывается с 9 марта 2020г.\n"
+			out += "🔹Версия бота: " + botInfo["version"] + "\n"
 			out += "🔹Последнее обновление получено: " + botInfo["last_update"] + "\n"
 			out += "🔹Создатель: Дарки(https://vk.com/id507365405)\n"
 			out += "🔹Зарегистрировано бесед: "
@@ -495,7 +496,7 @@ class nicknames:
 		for curr_mem in range(len(list(membs_of_chat))):
 			if membs_of_chat[list(membs_of_chat)[curr_mem]]["nickname"] == nick:
 				raise darkyExceptions.DarkyError(darkyExceptions.get_error(400))
-		membs_of_chat[str(id)]["nickname"] = nick
+		membs_of_chat[str(id)]["nickname"] = nick.lstrip(' ').rstrip(' ')
 		return membs_of_chat
 		
 	def delete(id, membs_of_chat): #удалить никнейм
@@ -590,8 +591,8 @@ class roleplay:
 	def add(command_args, rp_list):
 		#command_args - аргументы идущие вместе с командой
 		#rp_list - список рп команд сохранённых в боте
-		rp_name = command_args.split('; ')[0].lower()
-		rp_acts = command_args.split('; ')[1].lower() + '-' + command_args.split('; ')[2].lower()
+		rp_name = command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ')
+		rp_acts = command_args.split('; ')[1].lower().lstrip(' ').rstrip(' ') + '-' + command_args.split('; ')[2].lower().lstrip(' ').rstrip(' ')
 		if rp_name in ["буп", "кусь", "обнять", "поцеловать", "ударить"]:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(453))
 		if rp_name in rp_list and rp_list[rp_name] == rp_acts:
@@ -602,7 +603,7 @@ class roleplay:
 	def delete(command_args, rp_list):
 		#command_args - аргументы идущие вместе с командой
 		#rp_list - список рп команд сохранённых в боте
-		rp_name = command_args.lower()
+		rp_name = command_args.lower().lstrip(' ').rstrip(' ')
 		if rp_name in ["буп", "кусь", "лизнуть", "обнять", "поцеловать", "ударить"]:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(453))
 		if rp_name not in rp_list:
@@ -625,7 +626,7 @@ class roleplay:
 			rand_chat = str(event.chat_id)
 		while rand_chat == "0":
 			rand_chat = random.choice(list(chatSettings))
-		if chatSettings[rand_chat]["chat_settings"]["rp"] == True and chatSettings[rand_chat]["chat_settings"]["bot_rp"] == True:
+		if chatSettings[rand_chat]["chat_settings"]["bot_rp"] == True:
 			#поулчение рандомного участника из беседы
 			chat_members = vk.messages.getConversationMembers(peer_id=2000000000 + int(rand_chat))
 			rand_member = chat_members["items"][random.randint(0, chat_members["count"] - 1)]["member_id"]
@@ -734,8 +735,8 @@ class notes:
 		if len(command_args.split('; ')) != 3:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 		#распределение данных
-		name = command_args.split('; ')[1]
-		description = command_args.split('; ')[2]
+		name = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
+		description = command_args.split('; ')[2].lstrip(' ').rstrip(' ')
 		if name in ["-", ".", "null", ""]:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(602))
 		#поиск заголовка среди уже установленных
@@ -766,7 +767,7 @@ class notes:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 		if command_args.split('; ')[1].isdigit() != True:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(253))
-		note_id = int(command_args.split('; ')[1])
+		note_id = int(command_args.split('; ')[1].lstrip(' ').rstrip(' '))
 		#поиск арта с указанным идентификатором
 		for i in range(len(notes)):
 			if notes[i]["id"] == note_id:
@@ -785,8 +786,8 @@ class notes:
 		if len(command_args.split('; ')) != 3:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 		#парсинг данных
-		note_id = command_args.split('; ')[1]
-		new_name = command_args.split('; ')[2]
+		note_id = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
+		new_name = command_args.split('; ')[2].lstrip(' ').rstrip(' ')
 		#поиск заголовка среди уже установленных
 		if notes != []:
 			last_note_id = notes[-1]["id"]
@@ -808,8 +809,8 @@ class notes:
 		if len(command_args.split('; ')) != 3:
 			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
 		#парсинг данных
-		note_id = command_args.split('; ')[1]
-		new_desc = command_args.split('; ')[2]
+		note_id = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
+		new_desc = command_args.split('; ')[2].lstrip(' ').rstrip(' ')
 		#поиск заметки в списке
 		for note_ind in range(len(notes)):
 			if notes[note_ind]["id"] == int(note_id):

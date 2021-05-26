@@ -1059,7 +1059,7 @@ while True:
 									except vk_api.exceptions.ApiError as exc:
 										if exc.code in [15, 935]:
 											pass
-									bot.send_mess(vk, event.obj.message['peer_id'], '⚠️Данный пользователь - исключён\nПричина: получен бан в этой беседе')
+									bot.send_mess(vk, event.obj.message['peer_id'], '⚠️Данный пользователь исключён\nПричина: получен бан в этой беседе')
 							
 			except (AttributeError, KeyError) as exc:
 				pass
@@ -1078,7 +1078,7 @@ while True:
 						if chatSettings[str(event.chat_id)]["members"][str(event.obj.message['from_id'])]["is_banned"] == True:
 							try:
 								vk.messages.removeChatUser(chat_id = event.chat_id, member_id = event.obj.message['from_id'])
-								bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text='⚠️Данный пользователь - исключён\nПричина: получен бан в этой беседе')
+								bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text='⚠️Данный пользователь исключён\nПричина: получен бан в этой беседе')
 							except vk_api.exceptions.ApiError as exc:
 								if exc.code in [15, 935]:
 									pass

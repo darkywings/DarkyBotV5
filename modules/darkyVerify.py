@@ -18,7 +18,7 @@ class darky_verify: #система верификации пользовате�
 					raise darkyExceptions.DarkyError(darkyExceptions.get_error(304))
 			#обработка xml перед сохранением в файл ибо при парсинге возникали ошибки
 			doc = requests.get('https://vk.com/foaf.php?id=' + str(id))
-			doc = doc.text.replace('<foaf:Image', '<!--?<foaf:Image').replace('</foaf:Image>', '</foaf:Image>?-->').replace('И', 'и')
+			doc = doc.text.replace('--', '').replace('<foaf:Image', '<!--?<foaf:Image').replace('</foaf:Image>', '</foaf:Image>?-->').replace('И', 'и')
 			with open(path + '/foaf.xml', 'w') as xmldoc:
 				xmldoc.write(doc)
 				xmldoc.close()
@@ -57,26 +57,14 @@ class darky_verify: #система верификации пользовате�
 	
 	def display_settings(verify_sys):
 		result = '⚙️Настройки системы DarkyVerify:\n'
-		result += '🔹Статус: '
-		if verify_sys["status"] == True:
-			result += '✅Включён\n'
-		else:
-			result += '❌Выключен\n'
-		result += '🔹Наказание: '
-		if verify_sys["punishment"] == "kick":
-			result += '❕Кик❕\n'
-		elif verify_sys["punishment"] == "ban":
-			result += '❗Бан❗\n'
-		else:
-			result += '⚠️unknown_value⚠️\n'
+		result += '🔹Статус: ' + str(verify_sys["status"]).replace('True', '✅Вкл.').replace('False', '❌Выкл.') + '\n'
+		result += '🔹Наказание: ' + verify_sys["punishment"].replace('kick', '❕Кик❕').replace('ban', '❗Бан❗') + '\n'
 		result += '🔹Насколько давно должен быть создан аккаунт:\nНе менее ' + str(verify_sys["days_check"]) + ' дней назад\n'
 		if verify_sys["group_check"] != 0:
 			result += '🔹Участник должен быть в группе: \nhttps://vk.com/club' + str(verify_sys["group_check"]) + '\n'
-		result += '🔹Дополнительные поля проверки:\n'
 		if verify_sys["info_check"] != ".":
+			result += '🔹Дополнительные поля проверки:\n'
 			result += verify_sys["info_check"]
-		else:
-			result += '❌Не установлены'
 		return result
 	
 	def change_setting(vk, verify_sys, command_args): #управление настройками DarkyVerify

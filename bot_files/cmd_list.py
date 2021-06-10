@@ -8,7 +8,7 @@ command_list_default = { #список стандартных команд
 	'/darky assoc new': '/darky assoc new', #новая ассоциация для команды
 	'/darky assoc del': '/darky assoc del', #удалить ассоциации
 	'/darky choose': '/darky choose', #выбрать из предложенного
-	'/darky probably': '/darky probably', #вероятность
+	'/darky prob': '/darky prob', #вероятность
 	'/darky try': '/darky try', #попытка "выполнить"
 	'/darky dist': '/darky dist', #исказить текст
 	'/darky roll': '/darky roll', #бросить игральную кость
@@ -75,7 +75,7 @@ command_list_default = { #список стандартных команд
 			'args_count': 1,
 			'access': 'userschats'
 		},
-		'/darky probably': {
+		'/darky prob': {
 			'args_count': 1,
 			'access': 'userschats'
 		},

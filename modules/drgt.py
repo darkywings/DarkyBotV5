@@ -45,7 +45,11 @@ class drgt:
 		else:
 			#составление текста
 			for i in range(text_len):
-				out += word_list[random.randint(1, len(word_list)) - 1] + ' '
+				word = word_list[random.randint(1, len(word_list)) - 1]
+				#замена ссылок фразой "[DELETED_LINK]"
+				if 'http' in word or 'vk.cc' in word or 'bit.ly' in word:
+					word = "[DELETED_LINK]"
+				out += word + ' '
 			out = out.rstrip(' ')
 			#форматирование текста
 			text_style = random.randint(0, 10)

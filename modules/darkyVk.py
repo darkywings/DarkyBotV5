@@ -31,7 +31,7 @@ class bot:
 		#attachments - вложения.
 		# !!!необходимо указывать название параметров при вызове функции(кроме vk)
 		if peer_ids is None:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(9))
+			raise darkyExceptions.DarkyError(9)
 		else:
 			vk.messages.send(
 				peer_ids = peer_ids,
@@ -45,7 +45,7 @@ class bot:
 			vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
 			return True
 		except vk_api.exceptions.ApiError:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(2))
+			raise darkyExceptions.DarkyError(2)
 	
 	def user_admin_check(vk, chat_id, member_id): #проверяет админку у пользователя(также как и с админкой у бота)
 		user_is_admin = False
@@ -101,7 +101,7 @@ class bot:
 		if id_founded == True:
 			return id
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(6))
+			raise darkyExceptions.DarkyError(6)
 
 	def is_chat_member(vk, event, id): #является ли id учатсником беседы
 		chat_members = vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)

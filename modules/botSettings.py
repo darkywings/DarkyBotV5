@@ -126,8 +126,13 @@ class chat_settings:
 				"messages_count": 0, #количество сообщений
 				"words_count": 0, #количество написанных им слов
 				"chars_count": 0, #количество символов написанных пользователем
-				"hi_count": 0, #количество приветствий
-				"bye_count": 0, #количество прощаний
+				"attachments_count": {
+					"photo": 0, #количество отправленных фото
+					"video": 0, #количество отправленных видео
+					"audio": 0, #количество отправленных аудио
+					"docs": 0, #количество отправленных документов
+					"audio_messages": 0 #количество отправленных голосовых сообщений
+				},
 				"bad_words_count": 0, #количество использованного им мата
 				"level": 1, #уровень пользователя
 				"level_xp": 0 #опыт пользователя
@@ -152,9 +157,14 @@ class chat_settings:
 			"messages_count": 0,
 			"words_count": 0,
 			"chars_count": 0,
-			"hi_count": 0,
-			"bye_count": 0,
 			"bad_words_count": 0,
+			"attachments_count": {
+				"photo": 0,
+				"video": 0,
+				"audio": 0,
+				"docs": 0,
+				"audio_messages": 0
+			},
 			"level": 1,
 			"level_xp": 0
 		}
@@ -174,7 +184,7 @@ class chat_settings:
 			json_objects.write(chatSettings, path)
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(100))
+			raise darkyExceptions.DarkyError(100)
 	
 	
 	def unreg_chat(event, path, chatSettings): #удаление статуса регистрации для беседы
@@ -183,7 +193,7 @@ class chat_settings:
 			json_objects.write(chatSettings, path)
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+			raise darkyExceptions.DarkyError(101)
 	
 	
 	def show_settings(event, chatSettings): #вывод настроек беседы
@@ -212,7 +222,7 @@ class chat_settings:
 			result += '🔹Автокик:\n' + str(settings["chat_settings"]["autokick"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
 			return result
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+			raise darkyExceptions.DarkyError(101)
 	
 	
 	def change_setting(vk, event, command_param, chatSettings, path): #изменение настройки
@@ -241,24 +251,24 @@ class chat_settings:
 					#сравнение доступности значений
 					if param_name in ['kick_access', 'ban_access', 'warn_access', 'rp_access', 'nicknames_access']:
 						if not param_value in ['off', 'admins', 'all']:
-							raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+							raise darkyExceptions.DarkyError(502)
 					elif param_name in ['warn_punishment']:
 						if not param_value in ['none', 'kick', 'ban']:
-							raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+							raise darkyExceptions.DarkyError(502)
 					elif param_name in ['warn_limit']:
 						if not param_value in range(2, 10):
-							raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+							raise darkyExceptions.DarkyError(502)
 					#изменение параметра
 					settings["chat_settings"][param_name] = param_value
 					chatSettings[str(event.chat_id)] = settings
 					json_objects.write(chatSettings, path)
 					return chatSettings
 				else:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(501))
+					raise darkyExceptions.DarkyError(501)
 			else:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(500))
+				raise darkyExceptions.DarkyError(500)
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(101))
+			raise darkyExceptions.DarkyError(101)
 	
 	def set_preset(presets, settings, command_args):
 		#presets - объект, содержащий в себе пресеты для настроек бесед
@@ -269,7 +279,7 @@ class chat_settings:
 			settings["chat_settings"] = presets[command_args.split('; ')[1]]["chat_settings"]
 			return settings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(103))
+			raise darkyExceptions.DarkyError(103)
 
 
 
@@ -333,15 +343,15 @@ class user_settings:
 					#сравнение доступности значений
 					if param_name == 'rp_access':
 						if param_value not in ['off', 'only_users', 'only_bot', 'all']:
-							raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+							raise darkyExceptions.DarkyError(502)
 					#изменение параметра
 					settings[param_name] = param_value
 					userSettings[str(event.obj.message['from_id'])] = settings
 					json_objects.write(userSettings, path)
 					return userSettings
 				else:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(501))
+					raise darkyExceptions.DarkyError(501)
 			else:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(500))
+				raise darkyExceptions.DarkyError(500)
 		else:
 			pass

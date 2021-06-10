@@ -40,23 +40,23 @@ class main_commands:
 				choose_list = args.split()
 		if len(choose_list) > 1:
 			choose_rep = random.choice(choose_list)
-			darky_resp = 'Я выбираю - ' + str(choose_rep).lstrip(' ').rstrip(' ')
+			darky_resp = 'Я выбираю ' + str(choose_rep).lstrip(' ').rstrip(' ')
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(252))
+			raise darkyExceptions.DarkyError(252)
 		return darky_resp
 	
 	def probably(args): #вероятность высказывания
 		#args - высказывание
 		if args == '':
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(250)
 		darky_resp = 'Вероятность того, что ' + args + ' составляет ' + str(random.randint(0, 100)) + '%'
 		return darky_resp
 	
 	def trying(args): #функция "попытки выполнить" действие в высказывании
 		#args - высказывание
 		if args == '':
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
-		resp_list = ['❌Попытка ' + args + ' вышла неудачной', '✅Попытка ' + args + ' - удачна']
+			raise darkyExceptions.DarkyError(250)
+		resp_list = ['❌Попытка ' + args + ' оказалась неудачной', '✅Попытка ' + args + ' оказалась удачной']
 		darky_resp = random.choice(resp_list)
 		return darky_resp
 	
@@ -65,7 +65,7 @@ class main_commands:
 		out = ''
 		dist_symb_list = ['█', '▒', '□', '?', '[]']
 		if args == '':
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(250)
 		for i in range(len(list(args))):
 			#если рандом даст число выше 5 будет ставиться символ из оригинала
 			dist_symb_probably = random.randint(1, 18)
@@ -162,14 +162,14 @@ class greeting:
 			chatSettings[str(event.chat_id)]["greeting"]["attachment"] = greeting_attachment
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(152))
+			raise darkyExceptions.DarkyError(152)
 	
 	def delete(event, chatSettings): #удаление приветствия
 		if chatSettings[str(event.chat_id)]["greeting"] != {}:
 			chatSettings[str(event.chat_id)]["greeting"] = {}
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(150))
+			raise darkyExceptions.DarkyError(150)
 	
 	def display(event, chatSettings): #отображение приветствия
 		settings = chatSettings[str(event.chat_id)]
@@ -178,13 +178,13 @@ class greeting:
 			attachment = settings["greeting"]["attachment"]
 			return text, attachment
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(150))
+			raise darkyExceptions.DarkyError(150)
 	
 	def upd_att_accsskey(vk, event, chatSettings):
 		settings = chatSettings[str(event.chat_id)]
 		if settings["greeting"] != {}:
 			if settings["greeting"]["attachment"] == "":
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(155))
+				raise darkyExceptions.DarkyError(155)
 			#парсинг информации о текущем приветствии
 			att_type = settings["greeting"]["attachment"].split('_')[0].rstrip('0123456789')
 			att_owner_id = int(settings["greeting"]["attachment"].split('_')[0].lstrip('qwertyuiopasdfghjklzxcvbnm_-.,'))
@@ -202,10 +202,10 @@ class greeting:
 				if new_att != '':
 					chatSettings[str(event.chat_id)]["greeting"]["attachment"] = new_att
 				else:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(154))
+					raise darkyExceptions.DarkyError(154)
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(150))
+			raise darkyExceptions.DarkyError(150)
 
 
 
@@ -216,43 +216,60 @@ class rules:
 			chatSettings[str(event.chat_id)]["rules"] = event.obj.message['fwd_messages'][0]['text']
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(153))
+			raise darkyExceptions.DarkyError(153)
 			
 	def delete(event, chatSettings):
 		if chatSettings[str(event.chat_id)]["rules"] != "":
 			chatSettings[str(event.chat_id)]["rules"] = ""
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(151))
+			raise darkyExceptions.DarkyError(151)
 	
 	def display(event, chatSettings):
 		if chatSettings[str(event.chat_id)]["rules"] != "":
 			return chatSettings[str(event.chat_id)]["rules"]
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(151))
+			raise darkyExceptions.DarkyError(151)
 
 
 
 class chat: #работа с беседой и её участниками
 	
-	def add_lvl_exp(vk, peer_id, text, id, members, lvlup_mentions, users): #добавить опыт уровня пользователя
+	def add_lvl_exp(vk, peer_id, text, attachments, id, members, lvlup_mentions, users): #добавить опыт уровня пользователя
 		#peer_id - чат в котором было событие
 		#text - текст сообщения
+		#attachments - приложенные к сообщению документы
 		#id - идентификатор пользователя
 		#members - объект пользователей в настройках беседы
 		#lvlup_mentions - boolean, включены ли оповещения о новых уровнях
 		#users - объект пользователей в настройках пользователей
 		if id > 0:
-			text = text.lower()
+			text = text.lower().replace('\n', ' ')
 			chars = len(list(text)) + members[str(id)]["level_xp"]
 			members[str(id)]["chars_count"] += len(list(text))
 			members[str(id)]["words_count"] += len(text.split(" "))
-			if "прив" in text or "здраст" in text or "преет" in text or "преть" in text or "хай" in text:
-				members[str(id)]["hi_count"] += 1
-			if "пока" in text or "до встречи" in text or "до скорого" in text or "увидимся" in text or "до свидания" in text or "проща" in text or "досвидания" in text:
-				members[str(id)]["bye_count"] += 1
-			if "сук" in text or "бля" in text or "пизд" in text or "еба" in text or "хуй" in text or "хер" in text or "хуе" in text:
-				members[str(id)]["bad_words_count"] += 1
+			for i in range(len(text.split(' '))):
+				wordfromtext = text.split(' ')[i]
+				if "сук" in wordfromtext or "бля" in wordfromtext or "пизд" in wordfromtext or "еба" in wordfromtext or "хуй" in wordfromtext or "хер" in wordfromtext or "хуе" in wordfromtext:
+					members[str(id)]["bad_words_count"] += 1
+			if attachments != []:
+				for i in range(len(attachments)):
+					curr_attachment = attachments[i]
+					if curr_attachment["type"] == "photo":
+						members[str(id)]["attachments_count"]["photo"] += 1
+						members[str(id)]["chars_count"] += 20
+					if curr_attachment["type"] == "video":
+						members[str(id)]["attachments_count"]["video"] += 1
+						members[str(id)]["chars_count"] += 30
+					if curr_attachment["type"] == "doc":
+						members[str(id)]["attachments_count"]["docs"] += 1
+						members[str(id)]["chars_count"] += 35
+					if curr_attachment["type"] == "audio":
+						members[str(id)]["attachments_count"]["audio"] += 1
+						members[str(id)]["chars_count"] += 15
+					if curr_attachment["type"] == "audio_message":
+						members[str(id)]["attachments_count"]["audio_messages"] += 1
+						members[str(id)]["chars_count"] += 10
 			while chars >= 200 * members[str(id)]["level"]:
 				chars -= (200 * members[str(id)]["level"])
 				members[str(id)]["level"] += 1
@@ -278,9 +295,9 @@ class chat: #работа с беседой и её участниками
 		if command_args.isdigit() == True:
 			max_members = int(command_args)
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(253))
+			raise darkyExceptions.DarkyError(253)
 		if max_members not in range(5, 21):
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(254))
+			raise darkyExceptions.DarkyError(254)
 		#если указан лимит пользователей больше общего количества участников - изменение лимита
 		if max_members > len(list(members)):
 			max_members = len(list(members))
@@ -328,11 +345,14 @@ class chat: #работа с беседой и её участниками
 				out += "🔹Всего опыта: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["chars_count"]) + " exp\n"
 				out += "🔹Предупреждения: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["warns"]) + "\n"
 				out += "🔹Количество слов: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["words_count"]) + "\n"
-				out += "🔹Количество приветствий: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["hi_count"]) + "\n"
-				out += "🔹Количество прощаний: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["bye_count"]) + "\n"
 				out += "🔹Количество нецензурных слов: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["bad_words_count"]) + "\n"
+				out += "🔹Количество отправленных фотографий: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["attachments_count"]["photo"]) + "\n"
+				out += "🔹Количество отправленных видео: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["attachments_count"]["video"]) + "\n"
+				out += "🔹Количество отправленных аудиозаписей: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["attachments_count"]["audio"]) + "\n"
+				out += "🔹Количество отправленных документов: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["attachments_count"]["docs"]) + "\n"
+				out += "🔹Количество голосовых сообщений: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["attachments_count"]["audio_messages"]) + "\n"
 			else:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(102))
+				raise darkyExceptions.DarkyError(102)
 		elif id == -192784148:
 			out = "📊Статистика Дарки-бота:\n"
 			out += "🔹ID бота: -192784148\n"
@@ -362,7 +382,7 @@ class chat: #работа с беседой и её участниками
 			out += str(registered_users) + "\n"
 			out += "🔹Обработано команд: " + str(botInfo["commands"]) + "\n"
 		elif id < 0:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 		return out
 	
 	def kick(vk, event, command_args, chatSettings): #исключает пользователя из беседы
@@ -372,7 +392,7 @@ class chat: #работа с беседой и её участниками
 		else:
 			id = bot.search_id(event, command_args, chatSettings[str(event.chat_id)]["members"])
 		if id == -192784148:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(5))
+			raise darkyExceptions.DarkyError(5)
 		#кик пользователя
 		vk.messages.removeChatUser(chat_id = event.chat_id, member_id = id)
 	
@@ -383,12 +403,12 @@ class chat: #работа с беседой и её участниками
 		else:
 			id = bot.search_id(event, command_args, chatSettings[str(event.chat_id)]["members"])
 		if id == -192784148:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(5))
+			raise darkyExceptions.DarkyError(5)
 		if id < 0:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 		#пользователь должен хотя бы один раз присутствовать в беседе при боте
 		if str(id) not in chatSettings[str(event.chat_id)]["members"]:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(102))
+			raise darkyExceptions.DarkyError(102)
 		#если пользователь в чате - кик
 		if bot.is_chat_member(vk, event, id) == True:
 			chat.kick(vk, event, command_args, chatSettings)
@@ -397,19 +417,19 @@ class chat: #работа с беседой и её участниками
 		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != True:
 			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = True
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(200))
+			raise darkyExceptions.DarkyError(200)
 		return chatSettings
 	
 	def unban(event, command_args, chatSettings): #разбан пользователя в беседе
 		id = bot.search_id(event, command_args, chatSettings[str(event.chat_id)]["members"])
 		if id < 0:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 		if str(id) not in chatSettings[str(event.chat_id)]["members"]:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(102))
+			raise darkyExceptions.DarkyError(102)
 		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != False:
 			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = False
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(201))
+			raise darkyExceptions.DarkyError(201)
 		return chatSettings
 	
 	def unban_all(event, chatSettings): #разбан всех пользователей в беседе
@@ -432,9 +452,9 @@ class chat: #работа с беседой и её участниками
 		else:
 			id = bot.search_id(event, command_args, chatSettings[str(event.chat_id)]["members"])
 		if id == -192784148:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(5))
+			raise darkyExceptions.DarkyError(5)
 		if id < 0:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 		if bot.is_chat_member(vk, event, id) == True:
 			if chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] < chatSettings[str(event.chat_id)]["chat_settings"]["warn_limit"]:
 				chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] += 1
@@ -452,7 +472,7 @@ class chat: #работа с беседой и её участниками
 				chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] = 0
 			return chatSettings, out
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(21))
+			raise darkyExceptions.DarkyError(21)
 	
 	def unwarn(vk, event, command_args, chatSettings, full=False): #снять предупреждение
 		#full - полностью снять все предупреждения у данного пользователя или нет
@@ -461,9 +481,9 @@ class chat: #работа с беседой и её участниками
 		else:
 			id = bot.search_id(event, command_args, chatSettings[str(event.chat_id)]["members"])
 		if id == -192784148:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(5))
+			raise darkyExceptions.DarkyError(5)
 		if id < 0:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 		if bot.is_chat_member(vk, event, id) == True:
 			if full == False:
 				if chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] > 0:
@@ -472,7 +492,7 @@ class chat: #работа с беседой и её участниками
 				chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] = 0
 			return chatSettings
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(21))
+			raise darkyExceptions.DarkyError(21)
 	
 	def unwarn_all(event, chatSettings):
 		for curr_member in range(len(list(chatSettings[str(event.chat_id)]["members"]))):
@@ -495,7 +515,7 @@ class nicknames:
 		#проверка занят ли данный никнейм
 		for curr_mem in range(len(list(membs_of_chat))):
 			if membs_of_chat[list(membs_of_chat)[curr_mem]]["nickname"] == nick:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(400))
+				raise darkyExceptions.DarkyError(400)
 		membs_of_chat[str(id)]["nickname"] = nick.lstrip(' ').rstrip(' ')
 		return membs_of_chat
 		
@@ -569,9 +589,9 @@ class roleplay:
 			rp_to = bot.search_id(event, rp_to, chat_obj["members"])
 		if check_member == True:
 			if str(rp_to) in users and users[str(rp_to)]["rp_access"] in ['off', 'only_bot']:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(454))
+				raise darkyExceptions.DarkyError(454)
 			if rp_to > 0 and bot.is_chat_member(vk, event, rp_to) == False:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(6))
+				raise darkyExceptions.DarkyError(6)
 		#получение читабельного вида пользователя которому назначена рп команда
 		rp_to_str = roleplay.get_user(vk, rp_to, chat_obj, users)
 		#получение читабельного вида пользователя от которого пришёл запрос рп команды
@@ -594,9 +614,9 @@ class roleplay:
 		rp_name = command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ')
 		rp_acts = command_args.split('; ')[1].lower().lstrip(' ').rstrip(' ') + '-' + command_args.split('; ')[2].lower().lstrip(' ').rstrip(' ')
 		if rp_name in ["буп", "кусь", "обнять", "поцеловать", "ударить"]:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(453))
+			raise darkyExceptions.DarkyError(453)
 		if rp_name in rp_list and rp_list[rp_name] == rp_acts:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(450))
+			raise darkyExceptions.DarkyError(450)
 		rp_list[rp_name] = rp_acts
 		return rp_list
 	
@@ -605,9 +625,9 @@ class roleplay:
 		#rp_list - список рп команд сохранённых в боте
 		rp_name = command_args.lower().lstrip(' ').rstrip(' ')
 		if rp_name in ["буп", "кусь", "лизнуть", "обнять", "поцеловать", "ударить"]:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(453))
+			raise darkyExceptions.DarkyError(453)
 		if rp_name not in rp_list:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(451))
+			raise darkyExceptions.DarkyError(451)
 		del(rp_list[rp_name])
 		return rp_list
 	
@@ -631,11 +651,11 @@ class roleplay:
 			chat_members = vk.messages.getConversationMembers(peer_id=2000000000 + int(rand_chat))
 			rand_member = chat_members["items"][random.randint(0, chat_members["count"] - 1)]["member_id"]
 			if str(rand_member) in userSettings and userSettings[str(rand_member)]["rp_access"] in ['off', 'only_users']:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(454))
+				raise darkyExceptions.DarkyError(454)
 			if rand_member > 0:
 				rand_member = "[id" + str(rand_member) + "|@id" + str(rand_member) + "]"
 			elif rand_member == -192784148:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(12))
+				raise darkyExceptions.DarkyError(12)
 			elif rand_member < 0:
 				rand_member = "[club" + str(-rand_member) + "|@club" + str(-rand_member) + "]"
 			#получение рандомной рп команды
@@ -648,7 +668,7 @@ class roleplay:
 				peerid = 2000000000 + int(rand_chat)
 				return darky_resp, peerid
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(10))
+			raise darkyExceptions.DarkyError(10)
 
 
 
@@ -705,12 +725,10 @@ class notes:
 	def get(notes, command_args): #вывод списка заметок/подробной информации
 		out = ''
 		if notes == []:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(600))
+			raise darkyExceptions.DarkyError(600)
 		#проверка количества переданных аргументов
 		if len(command_args.split('; ')) != 1:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
-		if command_args != "list" and command_args.isdigit() != True:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(254))
+			raise darkyExceptions.DarkyError(250)
 		if command_args == "list":
 			out += "🧾Список ваших заметок:\n"
 			index = 1
@@ -724,27 +742,27 @@ class notes:
 					out += "💬Заголовок: " + notes[i]["name"] + "\n"
 					out += "💭Описание: " + notes[i]["desc"] + "\n"
 			if out == "":
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(601))
+				raise darkyExceptions.DarkyError(601)
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(253))
+			raise darkyExceptions.DarkyError(253)
 		return out
 	
 	def add(notes, command_args): #добавление заметки в список заметок
 		#проверка количества переданных аргументов
 		#/darky notes add; <name>; <desc>
 		if len(command_args.split('; ')) != 3:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(605)
 		#распределение данных
 		name = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
 		description = command_args.split('; ')[2].lstrip(' ').rstrip(' ')
 		if name in ["-", ".", "null", ""]:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(602))
+			raise darkyExceptions.DarkyError(602)
 		#поиск заголовка среди уже установленных
 		if notes != []:
 			last_note_id = notes[-1]["id"]
 			for i in range(len(notes)):
 				if name == notes[i]["name"]:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(603))
+					raise darkyExceptions.DarkyError(603)
 		else:
 			last_note_id = -1
 		#подготовка объекта
@@ -760,13 +778,13 @@ class notes:
 	def delete(notes, command_args):
 		deleted = False
 		if notes == []:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(600))
+			raise darkyExceptions.DarkyError(600)
 		#проверка количества переданных аргументов
 		#/darky notes del; <id>
 		if len(command_args.split('; ')) != 2:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(606)
 		if command_args.split('; ')[1].isdigit() != True:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(253))
+			raise darkyExceptions.DarkyError(253)
 		note_id = int(command_args.split('; ')[1].lstrip(' ').rstrip(' '))
 		#поиск арта с указанным идентификатором
 		for i in range(len(notes)):
@@ -775,16 +793,16 @@ class notes:
 				deleted = True
 				break
 		if deleted == False:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(604))
+			raise darkyExceptions.DarkyError(604)
 		return notes
 	
 	def rename(notes, command_args):
 		if notes == []:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(600))
+			raise darkyExceptions.DarkyError(600)
 		#проверка количества переданных аргументов
 		#/darky notes rename; <id>; <note_title>
 		if len(command_args.split('; ')) != 3:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(607)
 		#парсинг данных
 		note_id = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
 		new_name = command_args.split('; ')[2].lstrip(' ').rstrip(' ')
@@ -793,7 +811,7 @@ class notes:
 			last_note_id = notes[-1]["id"]
 			for i in range(len(notes)):
 				if new_name == notes[i]["name"]:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(603))
+					raise darkyExceptions.DarkyError(603)
 		#поиск заметки в списке
 		for note_ind in range(len(notes)):
 			if notes[note_ind]["id"] == int(note_id):
@@ -803,11 +821,11 @@ class notes:
 	
 	def edit(notes, command_args):
 		if notes == []:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(600))
+			raise darkyExceptions.DarkyError(600)
 		#проверка количества переданных аргументов
 		#/darky notes rename; <id>; <note_title>
 		if len(command_args.split('; ')) != 3:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(250))
+			raise darkyExceptions.DarkyError(608)
 		#парсинг данных
 		note_id = command_args.split('; ')[1].lstrip(' ').rstrip(' ')
 		new_desc = command_args.split('; ')[2].lstrip(' ').rstrip(' ')

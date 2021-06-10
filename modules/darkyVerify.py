@@ -15,7 +15,7 @@ class darky_verify: #система верификации пользовате�
 			if groupcheck != 0:
 				#проверка наличия пользователя в группе
 				if vk.groups.isMember(group_id=groupcheck, user_id=id) == 0:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(304))
+					raise darkyExceptions.DarkyError(304)
 			#обработка xml перед сохранением в файл ибо при парсинге возникали ошибки
 			doc = requests.get('https://vk.com/foaf.php?id=' + str(id))
 			doc = doc.text.replace('--', '').replace('<foaf:Image', '<!--?<foaf:Image').replace('</foaf:Image>', '</foaf:Image>?-->').replace('И', 'и')
@@ -38,11 +38,11 @@ class darky_verify: #система верификации пользовате�
 					if int(curr_date[1]) - int(reg_date[1]) < 1:
 						#проверка дней
 						if int(curr_date[2]) - int(reg_date[2]) < dayscheck:
-							raise darkyExceptions.DarkyError(darkyExceptions.get_error(300))
+							raise darkyExceptions.DarkyError(300)
 			if '-photo' in args:
 				#проверка аватарки
 				if '<foaf:img>' not in doc:
-					raise darkyExceptions.DarkyError(darkyExceptions.get_error(301))
+					raise darkyExceptions.DarkyError(301)
 			if '-friends' in args:
 				#проверка количества друзей
 				friends_count = 0
@@ -50,10 +50,10 @@ class darky_verify: #система верификации пользовате�
 					for i in user.iter('{http://blogs.yandex.ru/schema/foaf/}friendsCount'):
 						friends_count = i.text
 					if int(friends_count) < 5:
-						raise darkyExceptions.DarkyError(darkyExceptions.get_error(302))
+						raise darkyExceptions.DarkyError(302)
 			return True
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(8))
+			raise darkyExceptions.DarkyError(8)
 	
 	def display_settings(verify_sys):
 		result = '⚙️Настройки системы DarkyVerify:\n'
@@ -92,16 +92,16 @@ class darky_verify: #система верификации пользовате�
 					param_value = vk.groups.getById(group_id=param_value)[0]["id"]
 				except vk_api.exceptions.ApiError as exc:
 					if exc.code == 100:
-						raise darkyExceptions.DarkyError(darkyExceptions.get_error(503))
+						raise darkyExceptions.DarkyError(503)
 			#сравнение классов старого и нового значений
 			if type(param_value) == type(verify_sys[param_name]):
 				#проверка доступности значений
 				if param_name == "days_check":
 					if param_valye not in range(1, 7):
-						raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+						raise darkyExceptions.DarkyError(502)
 				if param_name == "punishment":
 					if param_value not in ["kick", "ban"]:
-						raise darkyExceptions.DarkyError(darkyExceptions.get_error(502))
+						raise darkyExceptions.DarkyError(502)
 				elif param_name == "info_check":
 					info_chk_prms = ""
 					if "photo" in param_value.lower():
@@ -113,6 +113,6 @@ class darky_verify: #система верификации пользовате�
 				verify_sys[param_name] = info_chk_prms
 				return verify_sys
 			else:
-				raise darkyExceptions.DarkyError(darkyExceptions.get_error(501))
+				raise darkyExceptions.DarkyError(501)
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(500))
+			raise darkyExceptions.DarkyError(500)

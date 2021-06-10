@@ -1,6 +1,7 @@
+class ReadBotSettingsExc:
+	pass
 
 def get_error(error_code=0):
-	
 	errors = { #база данных ошибок
 		"1": "Access denied",
 		"2": "Bot is not admin",
@@ -62,10 +63,14 @@ def get_error(error_code=0):
 		"503": "(DarkyVerify)Group not found",
 		
 		"600": "Notes list is empty",
-		"601": "This note didn't found",
+		"601": "This note is not exist",
 		"602": "Incorrect note's title",
 		"603": "This title is already used",
-		"604": "This note is didn't deleted"
+		"604": "This note is didn't deleted",
+		"605": "Wrong args count(/darky notes add)",
+		"606": "Wrong args count(/darky notes del)",
+		"607": "Wrong args count(/darky notes rename)",
+		"608": "Wrong args count(/darky notes edit)"
 	}
 	
 	if str(error_code) in errors:
@@ -80,14 +85,13 @@ def get_error(error_code=0):
 		}
 	return error
 
-
-class ReadBotSettingsExc:
-	pass
-
 class DarkyError(Exception):
 	#исключение внутри Дарки
 	
-	def __init__(self, error):
+	def __init__(self, error_code=0):
+		
+		error = get_error(error_code)
+		
 		self.code = error["code"]
 		self.msg = error["msg"]
 		self.error = error

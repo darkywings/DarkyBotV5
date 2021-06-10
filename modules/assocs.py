@@ -34,7 +34,7 @@ class command_assocs: #ассоциации с командами
 			else:
 				cmdCheckSlot1 = cmdCheckSlot1.rstrip(cmdCheckSlot1.split(' ')[-1]).rstrip(' ')
 		if cmdOut == '':
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(51))
+			raise darkyExceptions.DarkyError(51)
 		return cmdOut, cmdOut2
 	
 	
@@ -42,7 +42,7 @@ class command_assocs: #ассоциации с командами
 		if command in assoc_list:
 			return assoc_list[command]
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(51))
+			raise darkyExceptions.DarkyError(51)
 	
 	
 	def add(assoc_list, orig_command, assoc): #установка ассоциации для команды
@@ -53,7 +53,7 @@ class command_assocs: #ассоциации с командами
 			assoc_list[assoc] = orig_command
 			return assoc_list
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(50))
+			raise darkyExceptions.DarkyError(50)
 	
 	
 	def remove(assoc_list, assoc): #удаление ассоциации
@@ -63,4 +63,4 @@ class command_assocs: #ассоциации с командами
 			del(assoc_list[assoc])
 			return assoc_list
 		else:
-			raise darkyExceptions.DarkyError(darkyExceptions.get_error(50))
+			raise darkyExceptions.DarkyError(50)

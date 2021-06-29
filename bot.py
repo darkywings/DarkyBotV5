@@ -838,11 +838,11 @@ def init_command(): #инициализация команды
 			elif exc.code == 606:
 				darky_resp = '⚠️Количество аргументов для команды ' + command + ' с аргументом del должно быть равно: 2'
 			else:
-				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1)
+				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1, 1)
 		except TimeoutError:
 			raise TimeoutError
 		except Exception:
-			darky_resp = '⚠️Исключение обработано\n- - -\nДополнительная информация: ' + getTraceback(1)
+			darky_resp = '⚠️Исключение обработано\n- - -\nДополнительная информация: ' + getTraceback(1, 0)
 	else:
 		try:
 			if event_from_chat == True:
@@ -863,7 +863,7 @@ def init_command(): #инициализация команды
 			elif exc.code == 51:
 				pass
 			else:
-				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1)
+				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1, 1)
 		except:
 			darky_resp = '⚠️Исключение обработано\n- - -\nДополнительная информация: ' + getTraceback(1)
 	#отправка результата
@@ -956,7 +956,7 @@ while True:
 			
 			
 			
-			if random.randint(1, 50) == 1:
+			if random.randint(1, 100) == 1:
 				print("bot_random_rp")
 				try:
 					darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
@@ -1090,8 +1090,14 @@ while True:
 									pass
 					#засчитывание опыта пользователя
 					if chat_is_registered == True and event.obj.message['from_id'] > 0:
-						chatSettings[str(event.chat_id)]["members"] = commands.chat.add_lvl_exp(vk, event.obj.message["peer_id"], event.obj.message["text"], event.obj.message["attachments"], event.obj.message["from_id"], chatSettings[str(event.chat_id)]["members"], chatSettings[str(event.chat_id)]["chat_settings"]["lvlup_mentions"], userSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
+						try:
+							chatSettings[str(event.chat_id)]["members"] = commands.chat.add_lvl_exp(vk, event.obj.message["peer_id"], event.obj.message["text"], event.obj.message["attachments"], event.obj.message["from_id"], chatSettings[str(event.chat_id)]["members"], chatSettings[str(event.chat_id)]["chat_settings"]["lvlup_mentions"], userSettings)
+							json_objects.write(chatSettings, BOT_CHATSETTINGS)
+						except darkyExceptions.DarkyError as exc:
+							if exc.code == 104:
+								pass
+							else:
+								raise exc
 				#регистрация пользователя в настройках
 				if event.obj.message["peer_id"] < 20000000000:
 					userSettings = user_settings.reg_user(event, BOT_USERSETTINGS)

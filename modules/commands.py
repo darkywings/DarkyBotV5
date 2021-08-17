@@ -245,6 +245,9 @@ class chat: #работа с беседой и её участниками
 		#users - объект пользователей в настройках пользователей
 		if id > 0:
 			text = text.lower().replace('\n', ' ')
+			#"античит", который не позволит засчитать большие копипаст тексты
+			if len(list(text)) > 500 + random.randint(-50, 50):
+				raise darkyExceptions.DarkyError(104)
 			chars = len(list(text)) + members[str(id)]["level_xp"]
 			members[str(id)]["chars_count"] += len(list(text))
 			members[str(id)]["words_count"] += len(text.split(" "))
@@ -305,7 +308,7 @@ class chat: #работа с беседой и её участниками
 		users_list = []
 		for i in range(len(list(members))):
 			users_list.append((members[list(members)[i]]["nickname"], members[list(members)[i]]["chars_count"], int(list(members)[i])))
-		ids = sorted(users_list, key=lambda users_list: users_list[1], reverse=True)
+		ids = sorted(users_list, key=lambda users_list: users_list[1], reverse=True) #key=lambda users_list: users_list[1] - указывает по какому критерию идёт сортировка, в данном случае по второму элементу в списке(количество опыта)
 		user_ids = []
 		for user in range(max_members):
 			user_ids.append(ids[user][2])
@@ -340,6 +343,20 @@ class chat: #работа с беседой и её участниками
 				out += "🔹ID пользователя: " + str(id) + "\n"
 				out += "🔹Забанен: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"]) + "\n"
 				out += "🔹Никнейм: " + chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] + "\n"
+				out += "🔹Место в топе беседы: "
+				#получение списка топ-участников беседы
+				users_list = []
+				for user in range(len(list(chatSettings[str(event.chat_id)]["members"]))):
+					users_list.append((chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[user]]["chars_count"], int(list(chatSettings[str(event.chat_id)]["members"])[user])))
+				ids = sorted(users_list, key=lambda users_list: users_list[0], reverse=True)
+				#просчитывание текущего места участника
+				current_position = 1
+				for i in range(len(ids)):
+					if ids[i][1] == id:
+						break
+					else:
+						current_position += 1
+				out += str(current_position) + "\n"
 				out += "🔹Уровень: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["level"]) + "\n"
 				out += "🔹Опыт: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["level_xp"]) + " exp/" + str(200 * chatSettings[str(event.chat_id)]["members"][str(id)]["level"]) + " exp\n"
 				out += "🔹Всего опыта: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["chars_count"]) + " exp\n"

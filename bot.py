@@ -293,7 +293,7 @@ def execute_command(command, command_args): #выполнение команды
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 			else:
 				raise darkyExceptions.DarkyError(252)
-		elif command == command_list_default['/darky assoc new']:
+		elif command == command_list_default['/darky assoc set']:
 			if args_count == command_list_default['info'][command]['args_count']:
 				if event_from_chat == True:
 					if chat_is_registered == False:
@@ -303,7 +303,7 @@ def execute_command(command, command_args): #выполнение команды
 				else:
 					userSettings[str(event.obj.message['from_id'])]["command_assocs"] = command_assocs.add(userSettings[str(event.obj.message["from_id"])]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
 					json_objects.write(userSettings, BOT_USERSETTINGS)
-				darky_resp = '✅Ассоциация для команды ' + command_args.split('; ')[0] + ' установлена'
+				darky_resp = '✅Ассоциация для команды ' + command_args.split('; ')[0] + ' - установлена'
 			else:
 				raise darkyExceptions.DarkyError(250)
 		elif command == command_list_default['/darky assoc del']:
@@ -876,7 +876,7 @@ def init_command(): #инициализация команды
 
 
 print('Всё готово')
-bot.send_mess(vk, botSettings["settings"]["snd_msgs"], "✅Я запущена и готова к работе")
+bot.send_mess(vk, botSettings["admin_users"], "✅Я запущена и готова к работе")
 bd_date = 'null' #предотвращает ошибку в commands.easter_eggs.ee1() (лучше не трогать, одна строка не сильно мешает)
 
 #основной цикл

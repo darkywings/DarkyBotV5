@@ -39,8 +39,8 @@ class command_assocs: #ассоциации с командами
 	
 	
 	def check2(command, assoc_list):
-		if command in assoc_list:
-			return assoc_list[command]
+		if command.lower() in assoc_list:
+			return assoc_list[command.lower()]
 		else:
 			raise darkyExceptions.DarkyError(51)
 	
@@ -50,7 +50,7 @@ class command_assocs: #ассоциации с командами
 		#orig_command - настоящая команда (например: /darky_startUp)
 		#assoc - ассоциация для указанной команды
 		if not assoc.startswith('/darky'):
-			assoc_list[assoc] = orig_command
+			assoc_list[assoc] = orig_command.lower()
 			return assoc_list
 		else:
 			raise darkyExceptions.DarkyError(50)
@@ -60,7 +60,7 @@ class command_assocs: #ассоциации с командами
 		#assoc_list - обьект ассоциаций в настройках бота
 		#assoc - ассоциация которую нужно удалить
 		if not assoc.startswith('/darky'):
-			del(assoc_list[assoc])
+			del(assoc_list[assoc.lower()])
 			return assoc_list
 		else:
 			raise darkyExceptions.DarkyError(50)

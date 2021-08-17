@@ -5,7 +5,7 @@ command_list_default = { #список стандартных команд
 	'/darky unreg': '/darky unreg', #убрать регистрацию беседы
 	'/darky user settings': '/darky user settings', #показать настройки пользователя
 	'/darky user set': '/darky user set', #изменить настройку пользователя
-	'/darky assoc new': '/darky assoc new', #новая ассоциация для команды
+	'/darky assoc set': '/darky assoc set', #новая ассоциация для команды
 	'/darky assoc del': '/darky assoc del', #удалить ассоциации
 	'/darky choose': '/darky choose', #выбрать из предложенного
 	'/darky prob': '/darky prob', #вероятность
@@ -32,12 +32,12 @@ command_list_default = { #список стандартных команд
 	'/darky rp list': '/darky rp list', #список рп команд
 	'/darky rp new': '/darky rp new', #добавить рп команду
 	'/darky rp del': '/darky rp del', #удалить рп команду
-	'/darky random rp': '/darky random rp',
-	'/darky exc': '/darky exc',
-	'/darky layout': '/darky layout',
-	'/darky stats': '/darky stats',
-	'/darky notes': '/darky notes',
-	"/darky top": "/darky top",
+	'/darky random rp': '/darky random rp', #вызов рандомного рп ботом
+	'/darky exc': '/darky exc', #вызов исключения напрямую через бота
+	'/darky layout': '/darky layout', #изменение раскладки
+	'/darky stats': '/darky stats', #статистика пользователя
+	'/darky notes': '/darky notes', #заметки
+	"/darky top": "/darky top", #топ участников
 	'info': {
 		'/darky reg': {
 			'args_count': 0,
@@ -63,7 +63,7 @@ command_list_default = { #список стандартных команд
 			'args_count': 2,
 			'access': 'userschats'
 		},
-		'/darky assoc new': {
+		'/darky assoc set': {
 			'args_count': 2,
 			'access': 'userschats'
 		},

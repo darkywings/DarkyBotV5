@@ -50,7 +50,7 @@ class command_assocs: #ассоциации с командами
 		#orig_command - настоящая команда (например: /darky_startUp)
 		#assoc - ассоциация для указанной команды
 		if not assoc.startswith('/darky'):
-			assoc_list[assoc] = orig_command.lower()
+			assoc_list[assoc.lower()] = orig_command.lower()
 			return assoc_list
 		else:
 			raise darkyExceptions.DarkyError(50)

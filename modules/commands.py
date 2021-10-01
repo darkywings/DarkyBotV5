@@ -104,7 +104,7 @@ class main_commands:
 			darky_resp = '⚠️Неверные параметры команды. Параметрами должны быть два числа указывающие диапазон в котором будет выбрано рандомное число. Второй параметр должен превышать первый'
 		return darky_resp
 	
-	def layout(text): #измененте раскладки текста англ/рус
+	def layout(text): #изменение раскладки текста англ/рус
 		layout_en = "`~@#$%^&qwertyuiop[]QWERTYUIOP{}asdfghjkl;'\\ASDFGHJKL:\"|zxcvbnm,./ZXCVBNM<>?"
 		layout_ru = "ёЁ\"№;%:?йцукенгшщзхъЙЦУКЕНГШЩЗХЪфывапролджэ\\ФЫВАПРОЛДЖЭ/ячсмитьбю.ЯЧСМИТЬБЮ,"
 		text_list = list(text)
@@ -248,12 +248,13 @@ class chat: #работа с беседой и её участниками
 			#"античит", который не позволит засчитать большие копипаст тексты
 			if len(list(text)) > 500 + random.randint(-50, 50):
 				raise darkyExceptions.DarkyError(104)
+				
 			chars = len(list(text)) + members[str(id)]["level_xp"]
 			members[str(id)]["chars_count"] += len(list(text))
 			members[str(id)]["words_count"] += len(text.split(" "))
 			for i in range(len(text.split(' '))):
 				wordfromtext = text.split(' ')[i]
-				if "сук" in wordfromtext or "бля" in wordfromtext or "пизд" in wordfromtext or "еба" in wordfromtext or "хуй" in wordfromtext or "хер" in wordfromtext or "хуе" in wordfromtext:
+				if "сук" in wordfromtext or "бля" in wordfromtext or "пизд" in wordfromtext or "еба" in wordfromtext or "хуй" in wordfromtext or "хер" in wordfromtext or "хуе" in wordfromtext or "блья" in wordfromtext or "сучк" in wordfromtext:
 					members[str(id)]["bad_words_count"] += 1
 			if attachments != []:
 				for i in range(len(attachments)):
@@ -261,18 +262,23 @@ class chat: #работа с беседой и её участниками
 					if curr_attachment["type"] == "photo":
 						members[str(id)]["attachments_count"]["photo"] += 1
 						members[str(id)]["chars_count"] += 20
+						chars += 20
 					if curr_attachment["type"] == "video":
 						members[str(id)]["attachments_count"]["video"] += 1
 						members[str(id)]["chars_count"] += 30
+						chars += 30
 					if curr_attachment["type"] == "doc":
 						members[str(id)]["attachments_count"]["docs"] += 1
 						members[str(id)]["chars_count"] += 35
+						chars += 35
 					if curr_attachment["type"] == "audio":
 						members[str(id)]["attachments_count"]["audio"] += 1
 						members[str(id)]["chars_count"] += 15
+						chars += 15
 					if curr_attachment["type"] == "audio_message":
 						members[str(id)]["attachments_count"]["audio_messages"] += 1
 						members[str(id)]["chars_count"] += 10
+						chars += 10
 			while chars >= 200 * members[str(id)]["level"]:
 				chars -= (200 * members[str(id)]["level"])
 				members[str(id)]["level"] += 1
@@ -341,8 +347,12 @@ class chat: #работа с беседой и её участниками
 		if id > 0:
 			if str(id) in chatSettings[str(event.chat_id)]["members"]:
 				out += "🔹ID пользователя: " + str(id) + "\n"
-				out += "🔹Забанен: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"]) + "\n"
-				out += "🔹Никнейм: " + chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] + "\n"
+				out += "🔹Забанен: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"]).replace('True', '✅Да✅').replace('False', '❌Нет❌') + "\n"
+				out += "🔹Никнейм: "
+				if chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] != "":
+					out += chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] + "\n"
+				else:
+					out += "❌Не установлен❌"
 				out += "🔹Место в топе беседы: "
 				#получение списка топ-участников беседы
 				users_list = []
@@ -413,7 +423,10 @@ class chat: #работа с беседой и её участниками
 		#кик пользователя
 		vk.messages.removeChatUser(chat_id = event.chat_id, member_id = id)
 	
-	def ban(vk, event, command_args, chatSettings): #бан пользователя в беседе
+	def ban(vk, event, command_args, chatSettings, reason=""): #бан пользователя в беседе
+		if ";" in command_args:
+			reason = command_args.split(";")[-1].lstrip(" ").rstrip(" ")
+			command_args = command_args.split(";")[0].lstrip(" ").rstrip(" ")
 		#получение идентификатора
 		if command_args == 'myself':
 			id = event.obj.message['from_id']
@@ -429,7 +442,10 @@ class chat: #работа с беседой и её участниками
 		#если пользователь в чате - кик
 		if bot.is_chat_member(vk, event, id) == True:
 			chat.kick(vk, event, command_args, chatSettings)
-			bot.send_mess(vk, peer_ids = id, text = '⚠️Вы были исключены из беседы "' + chatSettings[str(event.chat_id)]["chat_info"]["title"] + '" так как вы забанены в ней')
+			response = '⚠️Вы были исключены из беседы "' + chatSettings[str(event.chat_id)]["chat_info"]["title"] + '" так как получили в ней бан'
+			if reason != "":
+				response += "\n❗Причина: " + reason
+			bot.send_mess(vk, peer_ids = id, text = response)
 		#запись в настройки о том что этот пользователь был забанен
 		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != True:
 			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = True

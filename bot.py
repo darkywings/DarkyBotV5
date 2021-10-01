@@ -727,6 +727,7 @@ def easy_commands(): #простенькие команды по типу при
 def init_command(): #инициализация команды
 	darky_resp = ''
 	darky_attachments = ''
+	bot_reply = False
 	visual.reprint('определение ассоциаций для "пресетных" команд...')
 	try:
 		if event.from_chat == True:
@@ -741,6 +742,7 @@ def init_command(): #инициализация команды
 	visual.reprint()
 	if command in command_list_default: #команда должна быть в command_list_default, чтобы она распознавалась ботом
 		bot.typing_state(vk, event)
+		bot_reply = True
 		try:
 			darky_resp, darky_attachments = execute_command(command, command_args)
 		except vk_api.exceptions.ApiError as exc:
@@ -837,6 +839,8 @@ def init_command(): #инициализация команды
 				darky_resp = '⚠️Количество аргументов для команды ' + command + ' с аргументами add / rename / edit должно быть равно: 3'
 			elif exc.code == 606:
 				darky_resp = '⚠️Количество аргументов для команды ' + command + ' с аргументом del должно быть равно: 2'
+			elif exc.code == 504:
+				darky_resp = '⚠️Превышен лимит групп, указанных в качестве значения параметра group_check'
 			else:
 				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1, 1)
 		except TimeoutError:
@@ -866,6 +870,7 @@ def init_command(): #инициализация команды
 				darky_resp = "⚠️Исключение DarkyError\n" + getTraceback(1, 1)
 		except:
 			darky_resp = '⚠️Исключение обработано\n- - -\nДополнительная информация: ' + getTraceback(1)
+			raise Exception
 	#отправка результата
 	if (darky_resp, darky_attachments) != ('', ''):
 		bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text=darky_resp, attachments=darky_attachments)
@@ -921,8 +926,7 @@ while True:
 							"status": True,
 							"punishment": "kick", #kick/ban
 							"days_check": 3,
-							"group_check": 0,
-							"info_check": "-photo-friends"
+							"group_check": []
 						}
 					
 					visual.reprint('проверка актуальности названия беседы...')
@@ -1012,12 +1016,17 @@ while True:
 						#сам вызов системы верификации и обработка её исключений
 						if verify_sys['status'] == True:
 							try:
-								is_verified = darky_verify.check(vk, id, verify_sys['days_check'], verify_sys['info_check'], verify_sys["group_check"], OS_PATH)
+								is_verified = darky_verify.check(vk, id, verify_sys['days_check'], verify_sys["group_check"], OS_PATH)
 							except darkyExceptions.DarkyError as exc:
-								if exc.code in [300, 301, 302, 304]:
+								if exc.code in [300, 304]:
 									if verify_sys['punishment'] == "ban":
 										if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] == False:
-											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings)
+											reason = "Система DarkyVerify посчитала ваш аккаунт подозрительным"
+											if exc.code == 300:
+												reason += "Ваш профиль был создан недавно"
+											elif exc.code == 304:
+												reason += "Вы не вступили в группы, в которых вы должны быть чтобы присоединиться к беседе"
+											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings, reason)
 											json_objects.write(chatSettings, BOT_CHATSETTINGS)
 										else:
 											vk.messages.removeChatUser(chat_id = event.chat_id, member_id = id)
@@ -1026,10 +1035,6 @@ while True:
 									darky_resp = '⚠️Система DarkyVerify распознала данную личность как подозрительную'
 									if exc.code == 300:
 										darky_resp += '\n\n❗Аккаунт пользователя был создан не более ' + str(verify_sys["days_check"]) + ' дней назад'
-									elif exc.code == 301:
-										darky_resp += '\n\n❗Аккаунт пользователя не имеет установленной аватарки'
-									elif exc.code == 302:
-										darky_resp += '\n\n❗Количество друзей у аккаунта пользователя меньше 5'
 									elif exc.code == 304:
 										darky_resp += '\n\n❗Данный пользователь не является участником, указанной в настройках беседы, группы'
 									if verify_sys['punishment'] == "ban":

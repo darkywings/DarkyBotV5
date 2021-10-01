@@ -24,6 +24,7 @@ def get_error(error_code=0):
 		"101": "Chat is not registered",
 		"102": "User is not registered in the chat",
 		"103": "This preset doesn't exist",
+		"104": "Too much symbols in text!",
 		
 		"150": "Greeting does not exist",
 		"151": "Rules does not exist",
@@ -44,8 +45,6 @@ def get_error(error_code=0):
 		"254": "(top members list) Wrong value in argument",
 		
 		"300": "User not verified(Account was created in 2-10 last days)",
-		"301": "User not verified(Account doesn't have photo)",
-		"302": "User not verified(Account doesn't have friends)",
 		"304": "User not verified(Account is not group member)",
 		
 		"400": "This nickname is already used",
@@ -61,6 +60,7 @@ def get_error(error_code=0):
 		"501": "Invalid value for parameter in bot settings",
 		"502": "Wrong param value in bot settings",
 		"503": "(DarkyVerify)Group not found",
+		"504": "(DarkyVerify)Can not set more groups to 'group_check'",
 		
 		"600": "Notes list is empty",
 		"601": "This note is not exist",

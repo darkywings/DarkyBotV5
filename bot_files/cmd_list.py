@@ -120,7 +120,7 @@ command_list_default = { #список стандартных команд
 			'access': 'chats'
 		},
 		'/darky ban': {
-			'args_count': 1,
+			'args_count': 2,
 			'access': 'chats'
 		},
 		'/darky unban': {

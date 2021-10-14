@@ -97,6 +97,7 @@ class chat_settings:
 			"rp": True, #доступ к рп
 			"rp_access": "admins", #доступ к изменению рп [all/admins/none]
 			"bot_rp": True, #рандомное использование ролевых команд самим ботом
+			"random_messages": True, #рандомное использование модуля DarkySpeak
 			"nicknames": True, #доступ к никнеймам
 			"nicknames_access": "off", #доступ к чужим никнеймам
 			"easy_commands_react": True, #реакция на простые команды(привет)
@@ -213,6 +214,7 @@ class chat_settings:
 			result += '🔹Ролевые команды:\n' + str(settings["chat_settings"]["rp"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
 			result += '🔹Кто может управлять ролевыми командами:\n' + settings["chat_settings"]["rp_access"].replace('all', '❕Все❕').replace('admins', '❗Администраторы❗').replace('off', '❌Никто❌') + '\n'
 			result += '🔹Использование ролевых команд ботом:\n' + str(settings["chat_settings"]["bot_rp"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
+			result += '🔹Рандомная генерация сообщений:\n' + str(settings["chat_settings"]["random_messages"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
 			result += '🔹Никнеймы:\n' + str(settings["chat_settings"]["nicknames"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
 			result += '🔹Кто может менять чужие никнеймы:\n' + settings["chat_settings"]["nicknames_access"].replace('all', '❕Все❕').replace('admins', '❗Администраторы❗').replace('off', '❌Никто❌') + '\n'
 			result += '🔹Наказание за лимит предупреждений:\n' + settings["chat_settings"]["warn_punishment"].replace('none', '⚠️Не установлено⚠️').replace('kick', '❕Кик❕').replace('ban', '❗Бан❗') + '\n'

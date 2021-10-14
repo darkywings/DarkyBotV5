@@ -52,8 +52,8 @@ try:
 	visual.reprint('os')
 	import os
 	#работа с системой DarkyRandomGeneratingText
-	visual.reprint('modules.drgt')
-	from modules.drgt import drgt
+	visual.reprint('DarkySpeak.DarkySpeak')
+	from DarkySpeak.DarkySpeak import DarkySpeak
 	#получение событий от vk api
 	visual.reprint('vk_api.bot_longpoll')
 	from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
@@ -81,11 +81,11 @@ print('Проверка наличия файлов и папок...')
 visual.reprint('Инициализация путей к файлам...')
 BOT_SETTINGS = OS_PATH + 'bot_files/bot_mainSettings.json'
 BOT_INFO = OS_PATH + 'bot_files/bot_info.json'
-BOT_MESS = OS_PATH + 'mess'
+BOT_SPEAK = OS_PATH + 'DarkySpeak/database.json'
 BOT_CHATSETTINGS = OS_PATH + 'bot_files/chats.json'
 BOT_USERSETTINGS = OS_PATH + 'bot_files/users.json'
 
-files_list = [BOT_SETTINGS, BOT_INFO, BOT_MESS, BOT_CHATSETTINGS, BOT_USERSETTINGS] #список файлов и папок
+files_list = [BOT_SETTINGS, BOT_INFO, BOT_SPEAK, BOT_CHATSETTINGS, BOT_USERSETTINGS] #список файлов и папок
 
 for current_file in range(len(files_list)):
 	if os.path.exists(files_list[current_file]) == True:
@@ -267,9 +267,10 @@ def execute_command(command, command_args): #выполнение команды
 				raise darkyExceptions.DarkyError(250)
 		elif command == command_list_default['/darky speak']:
 			if command_args == 'del data':
-				darky_resp = drgt.del_data(event, BOT_MESS, event_from_chat)
+				del(darky_speak_database[str(event.obj.message["peer_id"])])
+				darky_resp = "✅Данные, собранные для генерации текста, были безвозвратно удалены"
 			else:
-				darky_resp = drgt.generate(event, BOT_MESS, event_from_chat)
+				darky_resp = DarkySpeak.generate(darky_speak_database[str(event.obj.message["peer_id"])])
 		elif command == command_list_default['/darky notes']:
 			if args_count >= command_list_default['info'][command]['args_count']:
 				if command_args.split('; ')[0] in ["add", "del", "rename", "edit"]:
@@ -971,6 +972,19 @@ while True:
 					else:
 						raise exc
 			
+			if random.randint(1, 80) == 1:
+				print("bot_random_messaging")
+				darky_speak_database = json_objects.load(BOT_SPEAK)
+				mess_chat_id = random.choice(list(darky_speak_database))
+				if int(mess_chat_id) > 2000000000:
+					if str(int(mess_chat_id) - 2000000000) not in chatSettings:
+						darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
+						bot.send_mess(vk, int(mess_chat_id), darky_resp)
+					else:
+						if chatSettings[str(int(mess_chat_id) - 2000000000)]["chat_settings"]["random_messages"] == True:
+							darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
+							bot.send_mess(vk, int(mess_chat_id), darky_resp)
+			
 			visual.reprint()
 			
 			#реакция на выход пользователя из беседы
@@ -1108,8 +1122,12 @@ while True:
 					userSettings = user_settings.reg_user(event, BOT_USERSETTINGS)
 				if "test" in event.obj.message['text'].lower() or "тест" in event.obj.message['text'].lower():
 					bd_date = commands.easter_eggs.ee1(vk, event, bd_date)
-				#запись текста сообщения для будущей генерации сообщений(нет)
-				drgt.write_data(event, BOT_MESS)
+				#запись текста сообщения для будущей генерации сообщений
+				darky_speak_database = json_objects.load(BOT_SPEAK)
+				if str(event.obj.message["peer_id"]) not in darky_speak_database:
+					darky_speak_database[str(event.obj.message["peer_id"])] = {}
+				darky_speak_database[str(event.obj.message["peer_id"])] = DarkySpeak.read(event.obj.message["text"], darky_speak_database[str(event.obj.message["peer_id"])])
+				json_objects.write(darky_speak_database, BOT_SPEAK)
 				#выполнение самих команд
 				init_command()
 	
@@ -1128,6 +1146,19 @@ while True:
 					pass
 				else:
 					raise exc
+		if random.randint(1, 20) == 1:
+			print("bot_random_messaging")
+			darky_speak_database = json_objects.load(BOT_SPEAK)
+			mess_chat_id = random.choice(list(darky_speak_database))
+			if int(mess_chat_id) > 2000000000:
+				if str(int(mess_chat_id) - 2000000000) not in chatSettings:
+					darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
+					bot.send_mess(vk, mess_chat_id, darky_resp)
+				else:
+					if chatSettings[str(int(mess_chat_id) - 2000000000)]["chat_settings"]["random_messages"] == True:
+						darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
+						bot.send_mess(vk, mess_chat_id, darky_resp)
+		
 	except requests.exceptions.ConnectionError:
 		#при проблеме с подключением к сети бот будет ждать 5 секунд,
 		#а затем заново авторизовываться.

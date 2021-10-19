@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import random
+import os
 
 class DarkySpeak:
 	#модернизированный генератор текста для Дарки-бота
 	#работает также на основе рандома, но имеет некие закономерности для генерации
+	
 	
 	def read(text, database): #своеобразный метод обучения
 		#под каждое слово алгоритм создаёт словарь
@@ -72,3 +74,23 @@ class DarkySpeak:
 				out = styles[text_style]
 			
 		return out
+	
+	
+	def del_data(peer_id, path): #удаление собранных данных
+		
+		#параметры
+		#peer_id - идентификатор диалога
+		#path - путь к базам данных
+		
+		#проверка последнего файла базы данных
+		last_database_index = 0
+		while os.path.exists(path + str(peer_id) + "_" + str(last_database_index) + ".json") == True:
+			last_database_index += 1
+		last_data_index -= 1
+		
+		#удаление файлов где встречается нужный идентификатор
+		while os.path.exists(path + str(peer_id) + "_" + str(last_database_index) + ".json") == True:
+			os.remove(path + str(peer_id) + "_" + str(last_database_index) + ".json")
+			last_database_index -= 1
+		
+		return True

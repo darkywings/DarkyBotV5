@@ -86,7 +86,7 @@ class DarkySpeak:
 		last_database_index = 0
 		while os.path.exists(path + str(peer_id) + "_" + str(last_database_index) + ".json") == True:
 			last_database_index += 1
-		last_data_index -= 1
+		last_database_index -= 1
 		
 		#удаление файлов где встречается нужный идентификатор
 		while os.path.exists(path + str(peer_id) + "_" + str(last_database_index) + ".json") == True:

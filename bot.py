@@ -81,7 +81,7 @@ print('Проверка наличия файлов и папок...')
 visual.reprint('Инициализация путей к файлам...')
 BOT_SETTINGS = OS_PATH + 'bot_files/bot_mainSettings.json'
 BOT_INFO = OS_PATH + 'bot_files/bot_info.json'
-BOT_SPEAK = OS_PATH + 'DarkySpeak/database.json'
+BOT_SPEAK = OS_PATH + 'DarkySpeak'
 BOT_CHATSETTINGS = OS_PATH + 'bot_files/chats.json'
 BOT_USERSETTINGS = OS_PATH + 'bot_files/users.json'
 
@@ -153,6 +153,62 @@ def check_accss_to_command(command): #проверка доступности к
 		accss_grntd = True
 	return accss_grntd
 
+
+def darkyspeak_getdatabase():
+	#проверка последнего файла базы данных
+	last_database_index = 0
+	if os.path.exists(BOT_SPEAK + "/" + str(event.obj.message["peer_id"]) + "_" + str(last_database_index) + ".json") == False:
+		json_objects.write({}, BOT_SPEAK + "/" + str(event.obj.message["peer_id"]) + "_" + str(last_database_index) + ".json")
+	while os.path.exists(BOT_SPEAK + "/" + str(event.obj.message["peer_id"]) + "_" + str(last_database_index) + ".json") == True:
+		last_database_index += 1
+	last_database_index -= 1
+	if last_database_index > 0 and os.path.getsize(BOT_SPEAK + "/" + str(event.obj.message["peer_id"]) + "_" + str(last_database_index) + ".json") < 1024:
+		last_database_index -= 1
+	#загрузка рандомной базы данных
+	darky_speak_database = json_objects.load(BOT_SPEAK + "/" + str(event.obj.message["peer_id"]) + "_" + str(random.choice(range(0, last_database_index + 1))) + ".json")
+	return darky_speak_database
+
+
+def darkyspeak_write(peer_id, path):
+	#оптимизирует работу модуля DarkySpeak по сути тем что ограничивает размер файлов и не позволяет базам данных превышать 1 мб
+	#параметры
+	#peer_id - идентификатор диалога
+	#path - путь к базам данных
+	#проверка последнего файла базы данных
+	last_database_index = 0
+	if os.path.exists(BOT_SPEAK + "/" + str(peer_id) + "_" + str(last_database_index) + ".json") == False:
+		json_objects.write({}, BOT_SPEAK + "/" + str(peer_id) + "_" + str(last_database_index) + ".json")
+	while os.path.exists(path + "/" + str(peer_id) + "_" + str(last_database_index) + ".json") == True:
+		last_database_index += 1
+	last_database_index -= 1
+	#проверка размера файла базы данных
+	#если размер превышает 1 мб (1048576 байт), то автоматически запись будет идти в новый файл
+	if os.path.getsize(path + "/" + str(peer_id) + "_" + str(last_database_index) + ".json") > 1048576:
+		last_database_index += 1
+		darky_speak_database = {}
+	else:
+		darky_speak_database = json_objects.load(path + "/" + str(peer_id) + "_" + str(last_database_index) + ".json")
+	#запись базы данных в файл
+	darky_speak_database = DarkySpeak.read(event.obj.message["text"], darky_speak_database)
+	json_objects.write(darky_speak_database, path + "/" + str(peer_id) + "_" + str(last_database_index) + ".json")
+
+
+def darkyspeak_random():
+	print("bot_random_messaging")
+	darkyspeak_databases_list = os.listdir(BOT_SPEAK)
+	random_database = random.choice(darkyspeak_databases_list)
+	while random_database.endswith(".json") == False:
+		random_database = random.choice(darkyspeak_databases_list)
+	darky_speak_database = json_objects.load(BOT_SPEAK + "/" + random_database)
+	mess_chat_id = random_database.split("_")[0]
+	if int(mess_chat_id) > 2000000000:
+		if str(int(mess_chat_id) - 2000000000) not in chatSettings:
+			darky_resp = DarkySpeak.generate(darky_speak_database)
+			bot.send_mess(vk, mess_chat_id, darky_resp)
+		else:
+			if chatSettings[str(int(mess_chat_id) - 2000000000)]["chat_settings"]["random_messages"] == True:
+				darky_resp = DarkySpeak.generate(darky_speak_database)
+				bot.send_mess(vk, mess_chat_id, darky_resp)
 
 
 def execute_command(command, command_args): #выполнение команды
@@ -267,10 +323,11 @@ def execute_command(command, command_args): #выполнение команды
 				raise darkyExceptions.DarkyError(250)
 		elif command == command_list_default['/darky speak']:
 			if command_args == 'del data':
-				del(darky_speak_database[str(event.obj.message["peer_id"])])
-				darky_resp = "✅Данные, собранные для генерации текста, были безвозвратно удалены"
+				if DarkySpeak.del_data(event.obj.message["peer_id"], BOT_SPEAK) == True:
+					darky_resp = "✅Данные, собранные для генерации текста, были безвозвратно удалены"
 			else:
-				darky_resp = DarkySpeak.generate(darky_speak_database[str(event.obj.message["peer_id"])])
+				darky_speak_database = darkyspeak_getdatabase()
+				darky_resp = DarkySpeak.generate(darky_speak_database)
 		elif command == command_list_default['/darky notes']:
 			if args_count >= command_list_default['info'][command]['args_count']:
 				if command_args.split('; ')[0] in ["add", "del", "rename", "edit"]:
@@ -973,17 +1030,7 @@ while True:
 						raise exc
 			
 			if random.randint(1, 80) == 1:
-				print("bot_random_messaging")
-				darky_speak_database = json_objects.load(BOT_SPEAK)
-				mess_chat_id = random.choice(list(darky_speak_database))
-				if int(mess_chat_id) > 2000000000:
-					if str(int(mess_chat_id) - 2000000000) not in chatSettings:
-						darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
-						bot.send_mess(vk, int(mess_chat_id), darky_resp)
-					else:
-						if chatSettings[str(int(mess_chat_id) - 2000000000)]["chat_settings"]["random_messages"] == True:
-							darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
-							bot.send_mess(vk, int(mess_chat_id), darky_resp)
+				darkyspeak_random()
 			
 			visual.reprint()
 			
@@ -1123,11 +1170,7 @@ while True:
 				if "test" in event.obj.message['text'].lower() or "тест" in event.obj.message['text'].lower():
 					bd_date = commands.easter_eggs.ee1(vk, event, bd_date)
 				#запись текста сообщения для будущей генерации сообщений
-				darky_speak_database = json_objects.load(BOT_SPEAK)
-				if str(event.obj.message["peer_id"]) not in darky_speak_database:
-					darky_speak_database[str(event.obj.message["peer_id"])] = {}
-				darky_speak_database[str(event.obj.message["peer_id"])] = DarkySpeak.read(event.obj.message["text"], darky_speak_database[str(event.obj.message["peer_id"])])
-				json_objects.write(darky_speak_database, BOT_SPEAK)
+				darkyspeak_write(event.obj.message["peer_id"], BOT_SPEAK)
 				#выполнение самих команд
 				init_command()
 	
@@ -1147,17 +1190,7 @@ while True:
 				else:
 					raise exc
 		if random.randint(1, 20) == 1:
-			print("bot_random_messaging")
-			darky_speak_database = json_objects.load(BOT_SPEAK)
-			mess_chat_id = random.choice(list(darky_speak_database))
-			if int(mess_chat_id) > 2000000000:
-				if str(int(mess_chat_id) - 2000000000) not in chatSettings:
-					darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
-					bot.send_mess(vk, mess_chat_id, darky_resp)
-				else:
-					if chatSettings[str(int(mess_chat_id) - 2000000000)]["chat_settings"]["random_messages"] == True:
-						darky_resp = DarkySpeak.generate(darky_speak_database[mess_chat_id])
-						bot.send_mess(vk, mess_chat_id, darky_resp)
+			darkyspeak_random()
 		
 	except requests.exceptions.ConnectionError:
 		#при проблеме с подключением к сети бот будет ждать 5 секунд,

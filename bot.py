@@ -323,7 +323,7 @@ def execute_command(command, command_args): #выполнение команды
 				raise darkyExceptions.DarkyError(250)
 		elif command == command_list_default['/darky speak']:
 			if command_args == 'del data':
-				if DarkySpeak.del_data(event.obj.message["peer_id"], BOT_SPEAK) == True:
+				if DarkySpeak.del_data(event.obj.message["peer_id"], BOT_SPEAK + "/") == True:
 					darky_resp = "✅Данные, собранные для генерации текста, были безвозвратно удалены"
 			else:
 				darky_speak_database = darkyspeak_getdatabase()

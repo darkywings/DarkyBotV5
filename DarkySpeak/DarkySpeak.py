@@ -62,9 +62,9 @@ class DarkySpeak:
 				
 				#замена ссылок фразой "[DELETED_LINK]"
 				if 'http' in word or 'vk.cc' in word or 'bit.ly' in word:
-					word = "[DELETED_LINK]"
-				
-				out += word + " "
+					out += "[DELETED_LINK] "
+				else:
+					out += word + " "
 			
 			#форматирование текста
 			out = out.rstrip(" ")

@@ -58,11 +58,19 @@ class bot:
 					user_is_admin = False
 		return user_is_admin
 	
-	def search_id(event, user, cs_users_list): #поиск id пользователя
+	def search_id(event, user, cs_users_list={}): #поиск id пользователя
 		#cs_users_list - объект, список пользователей в настройках беседы
 		#поиск настоящего идентификатора пользователя по никнейму/id/ответу/пересланному сообщению
 		id_founded = False
-		if user != "":
+		if event.obj.message["fwd_messages"] != []:
+			#извлекание идентификатора из пересланного сообщения
+			id = event.obj.message["fwd_messages"][0]["from_id"]
+			id_founded = True
+		elif id_founded == False and "reply_message" in event.obj.message:
+			#извлекание идентификатора из ответа(обрабатывается поскольку "reply_message" бывает отсутствует)
+			id = event.obj.message["reply_message"]["from_id"]
+			id_founded = True
+		elif id_founded == False and user != "":
 			if user.startswith('[id'):
 				#упоминания вк всегда выглядят как [id<id>|<text>]
 				#парсинг информации
@@ -76,7 +84,7 @@ class bot:
 				if int(user) > -999999999 and int(user) < 999999999:
 					id = int(user)
 					id_founded = True
-			else:
+			elif cs_users_list != {}:
 				#поиск по никнейму
 				ready = False
 				for curr_user in range(len(list(cs_users_list))):
@@ -86,25 +94,14 @@ class bot:
 				if ready != False:
 					id = int(list(cs_users_list)[curr_user])
 					id_founded = True
-		else:
-			if event.obj.message["fwd_messages"] != []:
-				#извлекание идентификатора из пересланного сообщения
-				id = event.obj.message["fwd_messages"][0]["from_id"]
-				id_founded = True
-			else:
-				#извлекание идентификатора из ответа(обрабатывается поскольку "reply_message" бывает отсутствует)
-				try:
-					id = event.obj.message["reply_message"]["from_id"]
-					id_founded = True
-				except:
-					pass
 		if id_founded == True:
 			return id
 		else:
 			raise darkyExceptions.DarkyError(6)
 
-	def is_chat_member(vk, event, id): #является ли id учатсником беседы
-		chat_members = vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
+	def is_chat_member(vk, event, id, chat_members=None): #является ли id учатсником беседы
+		if chat_members == None:
+			chat_members = vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
 		id_founded = False
 		if id > 0:
 			for curr_mem in range(len(list(chat_members["profiles"]))):

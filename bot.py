@@ -26,7 +26,7 @@ try:
 	from modules.getTraceback import getTraceback
 	#работа с главными настройками бота
 	visual.reprint('modules.botSettings')
-	from modules.botSettings import bot_settings, chat_settings, user_settings
+	from modules.botSettings import chat_settings, user_settings, bot_settings
 	#большинство основных команд бота
 	visual.reprint('commands')
 	from modules import commands
@@ -66,6 +66,9 @@ try:
 	#работа с рандомом
 	visual.reprint('random')
 	import random
+	#таймер бота
+	visual.reprint('modules.botTime')
+	from modules.botTime import bot_timer
 	OS_PATH = rdb.osPath #путь к папке с ботом
 	ACCESS_TOKEN = rdb.accessToken #ключ доступа к сообществу вк(чтобы бот мог взаимодействовать с vk_api)
 	visual.reprint(visual.coloredText('Модули успешно импортированы', 'black', 'cian'), True)
@@ -103,14 +106,16 @@ for current_file in range(len(files_list)):
 visual.reprint(visual.coloredText('Необходимые файлы и папки были найдены', 'black', 'cian'), True)
 
 
-
-print('Считывание настроек бота...')
-try:
-	botSettings = bot_settings.read(BOT_SETTINGS)
-except darkyExceptions.ReadBotSettingsExc:
-	print(visual.coloredText('Ошибка чтения настроек бота. Завершение работы...', 'white', 'red'))
-	raise SystemExit
-
+print('Загрузка файлов и баз данных...')
+chatSettings = None
+userSettings = None
+botSettings = None
+botInfo = None
+chatSettings = json_objects.load(BOT_CHATSETTINGS)
+userSettings = json_objects.load(BOT_USERSETTINGS)
+botSettings = json_objects.load(BOT_SETTINGS)
+botInfo = json_objects.load(BOT_INFO)
+print(visual.coloredText('Все файлы и базы данных успешно загружены', 'black', 'cian'))
 
 
 print('Авторизация...')
@@ -194,7 +199,7 @@ def darkyspeak_write(peer_id, path):
 
 
 def darkyspeak_random():
-	print("bot_random_messaging")
+	visual.reprint("bot_random_messaging")
 	darkyspeak_databases_list = os.listdir(BOT_SPEAK)
 	random_database = random.choice(darkyspeak_databases_list)
 	while random_database.endswith(".json") == False:
@@ -211,26 +216,59 @@ def darkyspeak_random():
 				bot.send_mess(vk, mess_chat_id, darky_resp)
 
 
+def save_databases(): #сохраняет базы данных бота в файлы
+	visual.reprint("Запись баз данных в файлы...")
+	json_objects.write(chatSettings, BOT_CHATSETTINGS)
+	json_objects.write(userSettings, BOT_USERSETTINGS)
+	json_objects.write(botSettings, BOT_SETTINGS)
+	json_objects.write(botInfo, BOT_INFO)
+
+
 def execute_command(command, command_args): #выполнение команды
 	global chatSettings
 	global userSettings
+	global botSettings
 	darky_resp = ''
 	darky_attachments = ''
+	if command_args.lower() in ["себя", "меня", "мой", "моя"]:
+		command_args = command_args.replace(command_args, "myself")
 	if command_args == '':
 		args_count = 0
 	else:
 		args_count = len(command_args.split('; '))
-	visual.print_botEvent(event, command + ' ' + command_args)
 	if check_accss_to_command(command):
 		if command == command_list_default['/darky reg']:
 			if bot_is_admin == True:
 				if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
-					chatSettings = chat_settings.reg_chat(vk, event, BOT_CHATSETTINGS, chatObj[0]["chat_settings"]["title"])
+					chatSettings = chat_settings.reg_chat(vk, event, chatSettings, chatObj[0]["chat_settings"]["title"])
 					darky_resp = '✅Ваша беседа была зарегистрирована'
 				else:
 					raise darkyExceptions.DarkyError(3)
 			else:
 				raise darkyExceptions.DarkyError(2)
+		elif command == "/darky settings":
+			if event.obj.message["from_id"] not in botSettings["admin_users"]:
+				raise darkyExceptions.DarkyError(1)
+			darky_resp = bot_settings.show_settings(botSettings)
+		elif command == "/darky set":
+			if event.obj.message["from_id"] not in botSettings["admin_users"]:
+				raise darkyExceptions.DarkyError(1)
+			if args_count <= command_list_default['info'][command]['args_count']:
+				if command_args == "reset":
+					botSettings = bot_settings.reset_settings(botSettings)
+					darky_resp = "✅Настройки бота сброшены к настройкам по умолчанию. Список администраторов был не тронут"
+				else:
+					botSettings = bot_settings.change_settings(botSettings, command_args)
+					darky_resp = "✅Настройки бота были изменены!\n⚠️Убедитесь, что вы правильно указали значения настроек, иначе это может привести к крашу бота!"
+			else:
+				raise darkyExceptions.DarkyError(251)
+		elif command == "/darky admin":
+			if event.obj.message["from_id"] not in botSettings["admin_users"]:
+				raise darkyExceptions.DarkyError(1)
+			if args_count <= command_list_default['info'][command]['args_count']:
+				botSettings, darky_resp = bot_settings.change_admin(event, botSettings, command_args)
+			else:
+				raise darkyExceptions.DarkyError(251)
 		elif command == '/darky exc':
 			if command_args.split('; ')[0] == '2310':
 				bot.send_mess(vk, event.obj.message["peer_id"], "Вызов исключения " + command_args.split('; ')[1] + "...")
@@ -253,7 +291,6 @@ def execute_command(command, command_args): #выполнение команды
 				if args_count == command_list_default['info'][command]['args_count']:
 					if command_args.split('; ')[0] == "preset":
 						chatSettings[str(event.chat_id)] = chat_settings.set_preset(chat_settings_presets, chatSettings[str(event.chat_id)], command_args)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Пресет настроек ' + command_args.split('; ')[1] + ' успешно установлен в вашу беседу'
 					else:
 						chatSettings = chat_settings.change_setting(vk, event, command_args, chatSettings, BOT_CHATSETTINGS)
@@ -333,19 +370,15 @@ def execute_command(command, command_args): #выполнение команды
 				if command_args.split('; ')[0] in ["add", "del", "rename", "edit"]:
 					if command_args.split('; ')[0] == "add":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.add(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 						darky_resp = "✅Заметка внесена в список с идентификатором " + str(userSettings[str(event.obj.message["from_id"])]["notes"][-1]["id"])
 					elif command_args.split('; ')[0] == "del":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.delete(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - удалена'
 					elif command_args.split('; ')[0] == "rename":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.rename(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - переименнована'
 					elif command_args.split('; ')[0] == "edit":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.edit(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' - изменено'
 				else:
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
@@ -357,10 +390,8 @@ def execute_command(command, command_args): #выполнение команды
 					if chat_is_registered == False:
 						raise darkyExceptions.DarkyError(101)
 					chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.add(chatSettings[str(event.chat_id)]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
 				else:
 					userSettings[str(event.obj.message['from_id'])]["command_assocs"] = command_assocs.add(userSettings[str(event.obj.message["from_id"])]["command_assocs"], command_args.split('; ')[0], command_args.split('; ')[1])
-					json_objects.write(userSettings, BOT_USERSETTINGS)
 				darky_resp = '✅Ассоциация для команды ' + command_args.split('; ')[0] + ' - установлена'
 			else:
 				raise darkyExceptions.DarkyError(250)
@@ -371,20 +402,16 @@ def execute_command(command, command_args): #выполнение команды
 						if chat_is_registered == False:
 							raise darkyExceptions.DarkyError(101)
 						chatSettings[str(event.chat_id)]["command_assocs"] = command_assocs.remove(chatSettings[str(event.chat_id)]["command_assocs"], command_args)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					else:
 						userSettings[str(event.obj.message['from_id'])]["command_assocs"] = command_assocs.remove(userSettings[str(event.obj.message["from_id"])]["command_assocs"], command_args)
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 					darky_resp = '✅Ассоциация ' + command_args + ' - удалена'
 				else:
 					if event_from_chat == True:
 						if chat_is_registered == False:
 							raise darkyExceptions.DarkyError(101)
 						chatSettings[str(event.chat_id)]["command_assocs"] = {}
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					else:
 						userSettings[str(event.obj.message["from_id"])]["command_assocs"] = {}
-						json_objects.write(userSettings, BOT_USERSETTINGS)
 					darky_resp = '✅Все ассоциации - удалены'
 			else:
 				raise darkyExceptions.DarkyError(250)
@@ -397,7 +424,6 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.set(vk, event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Приветствие установлено'
 						else:
 							raise darkyExceptions.DarkyError(3)
@@ -407,7 +433,6 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.delete(event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Приветствие удалено'
 						else:
 							raise darkyExceptions.DarkyError(3)
@@ -417,7 +442,6 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Ключ доступа для прикреплённого в приветствии элемента - обновлён'
 						else:
 							raise darkyExceptions.DarkyError(3)
@@ -440,7 +464,6 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.rules.set(event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Правила установлены'
 						else:
 							raise darkyExceptions.DarkyError(3)
@@ -450,7 +473,6 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.rules.delete(event, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Правила удалены'
 						else:
 							raise darkyExceptions.DarkyError(3)
@@ -515,7 +537,6 @@ def execute_command(command, command_args): #выполнение команды
 								raise darkyExceptions.DarkyError(3)
 						try:
 							chatSettings = commands.chat.ban(vk, event, command_args, chatSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Пользователь - забанен'
 						except vk_api.exceptions.ApiError as exc:
 							if exc.code == 15:
@@ -534,11 +555,9 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(3)
 					if command_args == 'all':
 						chatSettings = commands.chat.unban_all(event, chatSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Все баны в этой беседе сняты'
 					else:
 						chatSettings = commands.chat.unban(event, command_args, chatSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Пользователь - разбанен'
 				else:
 					raise darkyExceptions.DarkyError(2)
@@ -554,7 +573,6 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(3)
 					try:
 						chatSettings, darky_resp = commands.chat.warn(vk, event, command_args, chatSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					except vk_api.exceptions.ApiError as exc:
 						if exc.code == 15:
 							raise darkyExceptions.DarkyError(11)
@@ -572,11 +590,9 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(3)
 					if command_args == 'all':
 						chatSettings = commands.chat.unwarn_all(event, chatSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Все предупреждения в беседе были сняты'
 					else:
 						chatSettings = commands.chat.unwarn(vk, event, command_args, chatSettings)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Предупреждение было снято'
 				else:
 					raise darkyExceptions.DarkyError(2)
@@ -594,7 +610,6 @@ def execute_command(command, command_args): #выполнение команды
 						darky_resp = '⚠️Возможно вы имели в виду /darky unwarn all'
 					else:
 						chatSettings = commands.chat.unwarn(vk, event, command_args, chatSettings, True)
-						json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						darky_resp = '✅Все предупреждения данного пользователя сняты'
 			else:
 				raise darkyExceptions.DarkyError(251)
@@ -636,7 +651,6 @@ def execute_command(command, command_args): #выполнение команды
 			if args_count == command_list_default['info'][command]['args_count']:
 				if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 					chatSettings[str(event.chat_id)]["verify_system"] = darky_verify.change_setting(vk, verify_sys, command_args)
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					darky_resp += '✅Параметр ' + command_args.split('; ')[0] + ' для DarkyVerify - изменён'
 				else:
 					raise darkyExceptions.DarkyError(3)
@@ -681,7 +695,6 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(8)
 						if command_args.split('; ')[0] == "set":
 							chatSettings[str(event.chat_id)]["members"] = commands.nicknames.set(id, chatSettings[str(event.chat_id)]["members"], command_args.split('; ')[1])
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							if str(id) in userSettings and userSettings[str(id)]["mentions"] == True or str(id) not in userSettings:
 								nick = '[id' + str(id) + '|' + command_args.split('; ')[1] + ']'
 							else:
@@ -689,7 +702,6 @@ def execute_command(command, command_args): #выполнение команды
 							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' теперь - ' + nick
 						elif command_args == "del":
 							chatSettings[str(event.chat_id)]["members"] = commands.nicknames.delete(id, chatSettings[str(event.chat_id)]["members"])
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' - удалён'
 					else:
 						raise darkyExceptions.DarkyError(253)
@@ -711,7 +723,6 @@ def execute_command(command, command_args): #выполнение команды
 						if user_is_admin == False and event.obj.message['from_id'] not in botSettings['admin_users']:
 							raise darkyExceptions.DarkyError(3)
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.add(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - добавлена'
 				else:
 					raise darkyExceptions.DarkyError(250)
@@ -726,7 +737,6 @@ def execute_command(command, command_args): #выполнение команды
 						if user_is_admin == False and event.obj.message['from_id'] not in botSettings['admin_users']:
 							raise darkyExceptions.DarkyError(3)
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.delete(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
-					json_objects.write(chatSettings, BOT_CHATSETTINGS)
 					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - удалена'
 				else:
 					raise darkyExceptions.DarkyError(250)
@@ -815,6 +825,8 @@ def init_command(): #инициализация команды
 				darky_resp = '❌Ваша беседа не зарегистрирована. Я не могу выполнить данную команду'
 			elif exc.code == 4:
 				darky_resp = '❌Эта команда здесь не работает'
+			elif exc.code == 1:
+				darky_resp = '⛔В доступе отказано'
 			elif exc.code == 2:
 				darky_resp = '❌Выполнение этой команды невозможно, поскольку у меня отсутствует статус администратора.'
 			elif exc.code == 3:
@@ -931,15 +943,17 @@ def init_command(): #инициализация команды
 			raise Exception
 	#отправка результата
 	if (darky_resp, darky_attachments) != ('', ''):
+		if botSettings["settings"]["timer_debug"] == True:
+			darky_resp += "\n" + str(bot_timer.stop()) + " sec."
 		bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text=darky_resp, attachments=darky_attachments)
+		visual.print_botEvent(event, command + ' ' + command_args + ', ' + str(bot_timer.stop()) + ' sec.')
 		botInfo["commands"] += 1
-		json_objects.write(botInfo, BOT_INFO)
 					
 			
 
 
 print('Всё готово')
-bot.send_mess(vk, botSettings["admin_users"], "✅Я запущена и готова к работе")
+bot.send_mess(vk, botSettings['admin_users'], "✅Я запущена и готова к работе")
 bd_date = 'null' #предотвращает ошибку в commands.easter_eggs.ee1() (лучше не трогать, одна строка не сильно мешает)
 
 #основной цикл
@@ -950,9 +964,17 @@ while True:
 			
 			botInfo = json_objects.load(BOT_INFO)
 			
-			visual.reprint('загрузка chatSettings...')
-			chatSettings = json_objects.load(BOT_CHATSETTINGS)
 			
+			
+			if botInfo is None:
+				visual.reprint('загрузка botInfo...')
+				botInfo = json_objects.load(BOT_INFO)
+			
+			
+			
+			if chatSettings is None:
+				visual.reprint('загрузка chatSettings...')
+				chatSettings = json_objects.load(BOT_CHATSETTINGS)
 			
 			
 			try:
@@ -991,18 +1013,19 @@ while True:
 					if bot_is_admin == True and str(event.chat_id) in chatSettings:
 						if chatSettings[str(event.chat_id)]['chat_info']['title'] != chatObj[0]["chat_settings"]["title"]:
 							chatSettings[str(event.chat_id)]['chat_info']['title'] = chatObj[0]["chat_settings"]["title"]
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						
 						if random.randint(1, botSettings["settings"]["upd_gr_acskeys"]) == 1:
 							visual.reprint('обновление ключа доступа у прикрепленного объекта в приветствии')
 							try:
 								chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
-								json_objects.write(chatSettings, BOT_CHATSETTINGS)
 								if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
 									bot.send_mess(vk, peer_ids=botSettings["settings"]["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' - обновлён')
 							except darkyExceptions.DarkyError as exc:
 								if exc.code in [150, 155]:
 									pass
+								elif exc.code == 154:
+									darky_resp = '⚠️Обнаружена некорректная работа вашего приветствия. Настоятельно рекомендую установить его заново'
+									bot.send_mess(vk, event.obj.message['peer_id'], darky_resp)
 								else:
 									raise exc
 					else:
@@ -1013,13 +1036,16 @@ while True:
 			except AttributeError:
 				pass
 			
-			visual.reprint('загрузка userSettings...')
-			userSettings = json_objects.load(BOT_USERSETTINGS)
+			
+			
+			if userSettings is None:
+				visual.reprint('загрузка userSettings...')
+				userSettings = json_objects.load(BOT_USERSETTINGS)
 			
 			
 			
 			if random.randint(1, 100) == 1:
-				print("bot_random_rp")
+				visual.reprint("bot_random_rp")
 				try:
 					darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 					bot.send_mess(vk, peerid, darky_resp)
@@ -1070,7 +1096,6 @@ while True:
 						if chat_is_registered == True:
 							if id > 0 and str(id) not in chatSettings[str(event.chat_id)]["members"]:
 								chatSettings[str(event.chat_id)]["members"][str(id)] = chat_settings.reg_user_in_chat()
-								json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						
 						is_verified = False
 						visual.reprint('работа системы DarkyVerify...')
@@ -1087,8 +1112,7 @@ while True:
 												reason += "Ваш профиль был создан недавно"
 											elif exc.code == 304:
 												reason += "Вы не вступили в группы, в которых вы должны быть чтобы присоединиться к беседе"
-											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings, reason)
-											json_objects.write(chatSettings, BOT_CHATSETTINGS)
+											chatSettings = commands.chat.ban(vk, event, str(id), chatSettings, reason, chatObj)
 										else:
 											vk.messages.removeChatUser(chat_id = event.chat_id, member_id = id)
 									elif verify_sys['punishment'] == 'kick':
@@ -1137,6 +1161,7 @@ while True:
 				pass
 			
 			if event.type == VkBotEventType.MESSAGE_NEW:
+				bot_timer.start()
 				if botSettings["settings"]["testing_mode"] == True:
 					if event.obj.message["peer_id"] not in botSettings["settings"]["testing_ids"]:
 						raise darkyExceptions.DarkyError(13)
@@ -1145,7 +1170,6 @@ while True:
 					if chat_is_registered == True and bot_is_admin == True and event.obj.message['from_id'] > 0:
 						if event.obj.message['from_id'] > 0 and str(event.obj.message['from_id']) not in chatSettings[str(event.chat_id)]["members"]:
 							chatSettings[str(event.chat_id)]["members"][str(event.obj.message['from_id'])] = chat_settings.reg_user_in_chat()
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						#удаление пользователя если он был забанен
 						if chatSettings[str(event.chat_id)]["members"][str(event.obj.message['from_id'])]["is_banned"] == True:
 							try:
@@ -1158,7 +1182,6 @@ while True:
 					if chat_is_registered == True and event.obj.message['from_id'] > 0:
 						try:
 							chatSettings[str(event.chat_id)]["members"] = commands.chat.add_lvl_exp(vk, event.obj.message["peer_id"], event.obj.message["text"], event.obj.message["attachments"], event.obj.message["from_id"], chatSettings[str(event.chat_id)]["members"], chatSettings[str(event.chat_id)]["chat_settings"]["lvlup_mentions"], userSettings)
-							json_objects.write(chatSettings, BOT_CHATSETTINGS)
 						except darkyExceptions.DarkyError as exc:
 							if exc.code == 104:
 								pass
@@ -1166,7 +1189,7 @@ while True:
 								raise exc
 				#регистрация пользователя в настройках
 				if event.obj.message["peer_id"] < 20000000000:
-					userSettings = user_settings.reg_user(event, BOT_USERSETTINGS)
+					userSettings = user_settings.reg_user(event, userSettings)
 				if "test" in event.obj.message['text'].lower() or "тест" in event.obj.message['text'].lower():
 					bd_date = commands.easter_eggs.ee1(vk, event, bd_date)
 				#запись текста сообщения для будущей генерации сообщений
@@ -1175,12 +1198,14 @@ while True:
 				init_command()
 	
 	except darkyExceptions.DarkyError as exc:
+		save_databases()
 		if exc.code == 13:
 			pass
 	except (TimeoutError, requests.exceptions.Timeout, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
+		save_databases()
 		#обработка timeout исключения и рвндомный вызов рп
 		if random.randint(1, 25) == 1:
-			print("bot_random_rp")
+			visual.reprint("bot_random_rp")
 			try:
 				darky_resp, peerid = commands.roleplay.rand_rp(vk, event, chatSettings, userSettings)
 				bot.send_mess(vk, peerid, darky_resp)
@@ -1196,6 +1221,7 @@ while True:
 		#при проблеме с подключением к сети бот будет ждать 5 секунд,
 		#а затем заново авторизовываться.
 		#бесконечно, пока интернет не восстановится
+		save_databases()
 		print('Ожидание подключения...')
 		time.sleep(5)
 		try:
@@ -1204,12 +1230,15 @@ while True:
 		except requests.exceptions.ConnectionError:
 			print(visual.coloredText('Подключение не восстановлено', 'red'))
 	except KeyboardInterrupt:
+		save_databases()
 		print()
 		raise SystemExit
 	except SystemExit:
+		save_databases()
 		print()
 		raise SystemExit
 	except:
+		save_databases()
 		#обработка исключения внутри работы бота
 		if botSettings["settings"]["exc_msg"] == True:
 			bot.send_mess(vk, peer_ids=botSettings["admin_users"], text='⚠️В моей работе произошла ошибка.\nТребуется полный перезапуск.\n\nДополнительная информация:\n- - -\n' + getTraceback(1))

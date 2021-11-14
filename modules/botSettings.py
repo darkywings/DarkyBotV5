@@ -5,84 +5,83 @@ from modules.getTraceback import getTraceback
 from modules import darkyExceptions
 from rdb import osPath
 import os
+from modules.darkyVk import bot
 
 
 class bot_settings:
 	
-	def optionValue_visual(option):
-		out = ''
-		if str(option) == '':
-			option = 'null'
-		elif option == True:
-			out = '✅'
-		elif option == False:
-			out = '❌'
-		else:
-			out = '❕'
-		out += str(option) + out
+	d_bot_settings = {
+		"testing_mode": False,
+        "testing_ids": [
+            507365405,
+            2000000004
+        ],
+        "upd_gr_acskeys": 50,
+        "exc_msg": True,
+        "timer_debug": False
+	}
+	
+	def show_settings(settings):
+		out = "🔧Внутренние настройки бота:\n"
+		out += "🔹Режим теста:\n" + str(settings["settings"]["testing_mode"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
+		out += "🔹Идентификаторы диалогов тестового режима:\n" + str(settings["settings"]["testing_ids"]) + "\n"
+		out += "🔹Частота обновления ключей доступа в приветствиях:\n" + str(settings["settings"]["upd_gr_acskeys"]) + "\n"
+		out += "🔹Сообщения об ошибках:\n" + str(settings["settings"]["exc_msg"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
+		out += "🔹Вывод времени выполнения команды:\n" + str(settings["settings"]["timer_debug"]).replace('True', '✅Вкл.✅').replace('False', '❌Выкл.❌') + '\n'
+		out += "🔹Администраторы бота:\n"
+		for i in range(len(list(settings["admin_users"]))):
+			out += "https://vk.com/id" + str(settings["admin_users"][i]) + "\n"
 		return out
 	
-	
-	def reset(botSettings_m, path): #сброс настроек бота
-		#botSettings_m - обьект которыц будет записываться
-		#path - путь к json файлу, в который будет записан обьект настроек
-		json_objects.write(botSettings_m, path) #запись в json
-		path_botSettings = path #запись пути к файлу в path_botSettings
-		return path_botSettings
-	
-	
-	def init(botSettings_m): #инициализация настроек бота
-		#botSettings_m - object, обьект с которым будут сравниваться настройки бота.
-		debug = ''
-		botSettings = {}
-		path_botSettings = osPath + '/bot_files/bot_mainSettings.json'
-		#поиск файла настроек в директории бота
-		if os.path.exists(path_botSettings) == True:
-			try:
-				#загрузка настроек из файла
-				botSettings, debug = json_objects.load(path_botSettings)
-			#проверка наличия создателя в разрешённых пользователях
-				if botSettings['admin_users'][0] == 507365405:
-					#проверка наличия параметров из списка settingsList в настройках бота
-					#при отсутствии какого либо параметра этот параметр будет добавлен автоматически
-					settingsNameList = ['debug', 'upd_gr_acskeys', 'upd_gr_acskeys_msg', 'reconnect_msg', 'exc_msg', 'snd_msgs', 'command_assoc'] #список параметров, что нужно проверить
-					settingsValueList = [0, 20, True, True, True, [], {}]
-					curEl = 0
-					while curEl < len(settingsNameList):
-						if settingsNameList[curEl] in botSettings["settings"]:
-							curEl += 1
-						else:
-							botSettings["settings"][settingsNameList[curEl]] = settingsValueList[curEl]
-							curEl += 1
-					json_objects.write(botSettings, path_botSettings)
-					print(visual.coloredText('Инициализация настроек бота завершена', bgColor='cian'))
-				else:
-					#установка списка разрешенных пользователей в исходное состояние
-					#по причине того, что создатель не был найден в этом списке в первую очередь
-					botSettings["admin_users"] == botSettings_m["admin_users"]
-					json_objects.write(botSettings, path_botSettings)
-					print(visual.coloredText('Список разрешённых пользователей восстановлен в исходное состояние', 'red'))
-			except:
-				#в целях "обезопасить" другие части кода настроки возвращаются в дефолтный вид
-				path_botSettings = bot_settings.reset(botSettings_m, path_botSettings)
-				print(visual.coloredText('Настройки установлены в исходное состояние из-за ошибки в них', 'red'))
-				print(getTraceback(0))
+	def change_settings(settings, command_args):
+		param_name = command_args.split("; ")[0]
+		param_value = command_args.split("; ")[1]
+		#проверка параметра на сходство с boolean
+		if param_value.lower() in ['true', 'false']:
+			if param_value.lower() == 'true':
+				param_value = True
+			elif param_value.lower() == 'false':
+				param_value = False
+		#проверка параметра на сходство с integer
+		elif param_value.isdigit() == True:
+			param_value = int(param_value)
 		else:
-			#при отстутствии файла он будет создан с дефолтными параметрами
-			path_botSettings = bot_settings.reset(botSettings_m, path_botSettings)
-			print(visual.coloredText('Файл настроек сброшен к стандартным параметрам', 'red'))
-		return path_botSettings
+			param_value = str(param_value)
+		if param_name in settings["settings"]:
+			settings["settings"][param_name] = param_value
+		else:
+			raise darkyExceptions.DarkyError(500)
+		return settings
 	
+	def reset_settings(settings, d_bot_settings=d_bot_settings):
+		settings["settings"] = d_bot_settings
+		return settings
 	
-	def read(path): #простое считывание настроек
-		#path - путь до файла настроек
-		#botSettings_m - оригинал настроек
-		try:
-			object = json_objects.load(path)
-		except:
-			raise darkyExceptions.ReadBotSettingsExc
-		return object
-
+	def change_admin(event, settings, command_args):
+		if "; " in command_args:
+			subfunction = command_args.split("; ")[0]
+			command_args = command_args.split("; ")[1]
+		else:
+			subfunction = command_args
+		if command_args == "myself":
+			raise darkyExceptions.DarkyError(6)
+		else:
+			id = bot.search_id(event, command_args)
+		if id == -192784148:
+			raise darkyExceptions.DarkyError(5)
+		if id == 507365405:
+			raise darkyExceptions.DarkyError(1)
+		if subfunction not in ["add", "del"]:
+			raise darkyExceptions.DarkyError(253)
+		if subfunction == "add":
+			settings["admin_users"].append(id)
+			darky_resp = "🔓Пользователь добавлен в список администраторов бота"
+		elif subfunction == "del":
+			for i in range(len(list(settings["admin_users"]))):
+				if settings["admin_users"][i] == id:
+					del(settings["admin_users"][i])
+					darky_resp = "🔒Пользователь удален из списка администраторов бота"
+		return settings, darky_resp
 
 
 class chat_settings:
@@ -118,26 +117,7 @@ class chat_settings:
 		"command_assocs": {}, #ассоциации к командам
 		"greeting": {}, #приветствие в беседе
 		"rules": "", #правила в беседе
-		"members": { #участники беседы
-			"507365405": {
-				"nickname": "Дарки", #никнейм пользователя
-				"is_banned": False, #забанен ли пользователь
-				"warns": 0, #предупреждения у пользователя
-				"messages_count": 0, #количество сообщений
-				"words_count": 0, #количество написанных им слов
-				"chars_count": 0, #количество символов написанных пользователем
-				"attachments_count": {
-					"photo": 0, #количество отправленных фото
-					"video": 0, #количество отправленных видео
-					"audio": 0, #количество отправленных аудио
-					"docs": 0, #количество отправленных документов
-					"audio_messages": 0 #количество отправленных голосовых сообщений
-				},
-				"bad_words_count": 0, #количество использованного им мата
-				"level": 1, #уровень пользователя
-				"level_xp": 0 #опыт пользователя
-			}
-		},
+		"members": {}, #участники беседы
 		"rp_commands": { #рп команды
 			"буп": "бупнул-бупнула",
 			"кусь": "кусьнул-кусьнула",
@@ -170,9 +150,7 @@ class chat_settings:
 		}
 	
 	
-	def reg_chat(vk, event, path, chat_title, settings=d_chat_settings): #регистрация беседы
-		#path - должен быть BOT_CHATSETTINGS, это путь к настройкам всех бесед
-		chatSettings = json_objects.load(path)
+	def reg_chat(vk, event, chatSettings, chat_title, settings=d_chat_settings): #регистрация беседы
 		if str(event.chat_id) not in chatSettings:
 			#сохранение названия беседы
 			settings["chat_info"]["title"] = chat_title
@@ -181,7 +159,6 @@ class chat_settings:
 			for current_member in range(len(chat_members['profiles'])):
 				settings["members"][str(chat_members["profiles"][current_member]["id"])] = chat_settings.reg_user_in_chat()
 			chatSettings[str(event.chat_id)] = settings
-			json_objects.write(chatSettings, path)
 			return chatSettings
 		else:
 			raise darkyExceptions.DarkyError(100)
@@ -190,7 +167,6 @@ class chat_settings:
 	def unreg_chat(event, path, chatSettings): #удаление статуса регистрации для беседы
 		if str(event.chat_id) in chatSettings:
 			del(chatSettings[str(event.chat_id)])
-			json_objects.write(chatSettings, path)
 			return chatSettings
 		else:
 			raise darkyExceptions.DarkyError(101)
@@ -262,7 +238,6 @@ class chat_settings:
 					#изменение параметра
 					settings["chat_settings"][param_name] = param_value
 					chatSettings[str(event.chat_id)] = settings
-					json_objects.write(chatSettings, path)
 					return chatSettings
 				else:
 					raise darkyExceptions.DarkyError(501)
@@ -295,11 +270,9 @@ class user_settings:
 	}
 	
 	
-	def reg_user(event, path, settings=d_user_settings): #регистрация пользователя из личных сообщений
-		userSettings = json_objects.load(path)
+	def reg_user(event, userSettings, settings=d_user_settings): #регистрация пользователя из личных сообщений
 		if str(event.obj.message['from_id']) not in userSettings:
 			userSettings[str(event.obj.message['from_id'])] = settings
-			json_objects.write(userSettings, path)
 		else:
 			pass
 		return userSettings
@@ -348,7 +321,6 @@ class user_settings:
 					#изменение параметра
 					settings[param_name] = param_value
 					userSettings[str(event.obj.message['from_id'])] = settings
-					json_objects.write(userSettings, path)
 					return userSettings
 				else:
 					raise darkyExceptions.DarkyError(501)

@@ -38,6 +38,9 @@ command_list_default = { #список стандартных команд
 	'/darky stats': '/darky stats', #статистика пользователя
 	'/darky notes': '/darky notes', #заметки
 	"/darky top": "/darky top", #топ участников
+	"/darky settings": "/darky settings", #вывод внутренних настроек бота
+	"/darky set": "/darky set", #изменение настроек бота
+	"/darky admin": "/darky admin", #управление администраторами бота
 	'info': {
 		'/darky reg': {
 			'args_count': 0,
@@ -198,6 +201,18 @@ command_list_default = { #список стандартных команд
 		"/darky top": {
 			"args_count": 1,
 			"access": "chats"
+		},
+		"/darky settings": {
+			"args_count": 0,
+			"access": "chatsusers"
+		},
+		"/darky set": {
+			"args_count": 2,
+			"access": "chatsusers"
+		},
+		"/darky admin": {
+			"args_count": 2,
+			"access": "chatsusers"
 		}
 	}
 }

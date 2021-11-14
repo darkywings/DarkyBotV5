@@ -323,7 +323,7 @@ def execute_command(command, command_args): #выполнение команды
 				if event_from_chat == True:
 					bug_rep += 'Идентификатор беседы:\n' + str(event.chat_id) + '\n'
 				bug_rep += 'Текст репорта:\n' + command_args
-				bot.send_mess(vk, botSettings["settings"]["snd_msgs"], bug_rep)
+				bot.send_mess(vk, botSettings["admin_users"], bug_rep)
 				darky_resp = '✅Ваш репорт был отправлен моим администраторам на рассмотрение. При необходимости они с вами свяжутся. Спасибо, что сообщили об ошибке в моей работе'
 			else:
 				raise darkyExceptions.DarkyError(250)
@@ -1019,7 +1019,7 @@ while True:
 							try:
 								chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
 								if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
-									bot.send_mess(vk, peer_ids=botSettings["settings"]["snd_msgs"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' - обновлён')
+									bot.send_mess(vk, peer_ids=botSettings["admin_users"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' - обновлён')
 							except darkyExceptions.DarkyError as exc:
 								if exc.code in [150, 155]:
 									pass

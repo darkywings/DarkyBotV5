@@ -313,7 +313,8 @@ class chat: #работа с беседой и её участниками
 		#сортировка по убыванию опыта пользователя
 		users_list = []
 		for i in range(len(list(members))):
-			users_list.append((members[list(members)[i]]["nickname"], members[list(members)[i]]["chars_count"], int(list(members)[i])))
+			if members[list(members)[i]]["is_banned"] == False:
+				users_list.append((members[list(members)[i]]["nickname"], members[list(members)[i]]["chars_count"], int(list(members)[i])))
 		ids = sorted(users_list, key=lambda users_list: users_list[1], reverse=True) #key=lambda users_list: users_list[1] - указывает по какому критерию идёт сортировка, в данном случае по второму элементу в списке(количество опыта)
 		user_ids = []
 		for user in range(max_members):
@@ -352,21 +353,25 @@ class chat: #работа с беседой и её участниками
 				if chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] != "":
 					out += chatSettings[str(event.chat_id)]["members"][str(id)]["nickname"] + "\n"
 				else:
-					out += "❌Не установлен❌"
+					out += "❌Не установлен❌\n"
 				out += "🔹Место в топе беседы: "
-				#получение списка топ-участников беседы
-				users_list = []
-				for user in range(len(list(chatSettings[str(event.chat_id)]["members"]))):
-					users_list.append((chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[user]]["chars_count"], int(list(chatSettings[str(event.chat_id)]["members"])[user])))
-				ids = sorted(users_list, key=lambda users_list: users_list[0], reverse=True)
-				#просчитывание текущего места участника
-				current_position = 1
-				for i in range(len(ids)):
-					if ids[i][1] == id:
-						break
-					else:
-						current_position += 1
-				out += str(current_position) + "\n"
+				if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] == False:
+					#получение списка топ-участников беседы
+					users_list = []
+					for user in range(len(list(chatSettings[str(event.chat_id)]["members"]))):
+						if chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[user]]["is_banned"] == False:
+							users_list.append((chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[user]]["chars_count"], int(list(chatSettings[str(event.chat_id)]["members"])[user])))
+					ids = sorted(users_list, key=lambda users_list: users_list[0], reverse=True)
+					#просчитывание текущего места участника
+					current_position = 1
+					for i in range(len(ids)):
+						if ids[i][1] == id:
+							break
+						else:
+							current_position += 1
+					out += str(current_position) + "\n"
+				else:
+					out += "-\n"
 				out += "🔹Уровень: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["level"]) + "\n"
 				out += "🔹Опыт: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["level_xp"]) + " exp/" + str(200 * chatSettings[str(event.chat_id)]["members"][str(id)]["level"]) + " exp\n"
 				out += "🔹Всего опыта: " + str(chatSettings[str(event.chat_id)]["members"][str(id)]["chars_count"]) + " exp\n"
@@ -423,11 +428,14 @@ class chat: #работа с беседой и её участниками
 		#кик пользователя
 		vk.messages.removeChatUser(chat_id = event.chat_id, member_id = id)
 	
-	def ban(vk, event, command_args, chatSettings, reason=""): #бан пользователя в беседе
+	def ban(vk, event, command_args, chatSettings, reason="", chat_members=None): #бан пользователя в беседе
 		if ";" in command_args:
 			reason = command_args.split(";")[-1].lstrip(" ").rstrip(" ")
 			command_args = command_args.split(";")[0].lstrip(" ").rstrip(" ")
+		elif event.obj.message["fwd_messages"] != [] or "reply_message" in event.obj.message:
+			reason = command_args
 		#получение идентификатора
+		id = 0
 		if command_args == 'myself':
 			id = event.obj.message['from_id']
 		else:
@@ -439,8 +447,9 @@ class chat: #работа с беседой и её участниками
 		#пользователь должен хотя бы один раз присутствовать в беседе при боте
 		if str(id) not in chatSettings[str(event.chat_id)]["members"]:
 			raise darkyExceptions.DarkyError(102)
+		#проверка причины если такая указана
 		#если пользователь в чате - кик
-		if bot.is_chat_member(vk, event, id) == True:
+		if bot.is_chat_member(vk, event, id, chat_members):
 			chat.kick(vk, event, command_args, chatSettings)
 			response = '⚠️Вы были исключены из беседы "' + chatSettings[str(event.chat_id)]["chat_info"]["title"] + '" так как получили в ней бан'
 			if reason != "":
@@ -478,7 +487,7 @@ class chat: #работа с беседой и её участниками
 				ids.append(list(members)[curr_user])
 		return ids
 	
-	def warn(vk, event, command_args, chatSettings): #выдать одно предупреждение пользователю
+	def warn(vk, event, command_args, chatSettings, chat_members=None): #выдать одно предупреждение пользователю
 		out = ''
 		if command_args == 'myself':
 			id = event.obj.message['from_id']
@@ -488,7 +497,7 @@ class chat: #работа с беседой и её участниками
 			raise darkyExceptions.DarkyError(5)
 		if id < 0:
 			raise darkyExceptions.DarkyError(8)
-		if bot.is_chat_member(vk, event, id) == True:
+		if bot.is_chat_member(vk, event, id, chat_members) == True:
 			if chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] < chatSettings[str(event.chat_id)]["chat_settings"]["warn_limit"]:
 				chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] += 1
 				out = '❕[id' + str(id) + '|Вам] выдали предупреждение(' + str(chatSettings[str(event.chat_id)]["members"][str(id)]["warns"]) + '/' + str(chatSettings[str(event.chat_id)]["chat_settings"]["warn_limit"]) + ')\nПри достижении максимального количества вы получите наказание'
@@ -507,7 +516,7 @@ class chat: #работа с беседой и её участниками
 		else:
 			raise darkyExceptions.DarkyError(21)
 	
-	def unwarn(vk, event, command_args, chatSettings, full=False): #снять предупреждение
+	def unwarn(vk, event, command_args, chatSettings, full=False, chat_members=None): #снять предупреждение
 		#full - полностью снять все предупреждения у данного пользователя или нет
 		if command_args == 'myself':
 			id = event.obj.message['from_id']
@@ -517,7 +526,7 @@ class chat: #работа с беседой и её участниками
 			raise darkyExceptions.DarkyError(5)
 		if id < 0:
 			raise darkyExceptions.DarkyError(8)
-		if bot.is_chat_member(vk, event, id) == True:
+		if bot.is_chat_member(vk, event, id, chat_members) == True:
 			if full == False:
 				if chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] > 0:
 					chatSettings[str(event.chat_id)]["members"][str(id)]["warns"] -= 1
@@ -612,7 +621,7 @@ class roleplay:
 		if rp != "":
 			return rp, rp_to
 	
-	def do_rp(vk, event, rp_from, message, chat_obj, users, check_member=True): #выполнение рп
+	def do_rp(vk, event, rp_from, message, chat_obj, users, check_member=True, chat_members=None): #выполнение рп
 		#получение читабельного вида рп действия
 		rp_act, rp_to = roleplay.get_rp(message, chat_obj["rp_commands"])
 		#определение идентификатора пользователя, которому назначена рп команда
@@ -623,7 +632,7 @@ class roleplay:
 		if check_member == True:
 			if str(rp_to) in users and users[str(rp_to)]["rp_access"] in ['off', 'only_bot']:
 				raise darkyExceptions.DarkyError(454)
-			if rp_to > 0 and bot.is_chat_member(vk, event, rp_to) == False:
+			if rp_to > 0 and bot.is_chat_member(vk, event, rp_to, chat_members) == False:
 				raise darkyExceptions.DarkyError(6)
 		#получение читабельного вида пользователя которому назначена рп команда
 		rp_to_str = roleplay.get_user(vk, rp_to, chat_obj, users)

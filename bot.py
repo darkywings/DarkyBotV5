@@ -1053,7 +1053,7 @@ while True:
 					else:
 						raise exc
 				except vk_api.exceptions as exc:
-					if exc.code = 917:
+					if exc.code == 917:
 						pass
 			
 			if random.randint(1, 80) == 1:
@@ -1216,7 +1216,7 @@ while True:
 				else:
 					raise exc
 			except vk_api.exceptions as exc:
-				if exc.code = 917:
+				if exc.code == 917:
 					pass
 		if random.randint(1, 20) == 1:
 			darkyspeak_random()

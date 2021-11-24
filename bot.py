@@ -1018,8 +1018,6 @@ while True:
 							visual.reprint('обновление ключа доступа у прикрепленного объекта в приветствии')
 							try:
 								chatSettings = commands.greeting.upd_att_accsskey(vk, event, chatSettings)
-								if botSettings["settings"]["upd_gr_acskeys_msg"] == True:
-									bot.send_mess(vk, peer_ids=botSettings["admin_users"], text='✅Ключ доступа у прикреплённого объекта приветствия в беседе id' + str(event.chat_id) + ' - обновлён')
 							except darkyExceptions.DarkyError as exc:
 								if exc.code in [150, 155]:
 									pass
@@ -1054,6 +1052,9 @@ while True:
 						pass
 					else:
 						raise exc
+				except vk_api.exceptions as exc:
+					if exc.code = 917:
+						pass
 			
 			if random.randint(1, 80) == 1:
 				darkyspeak_random()
@@ -1214,6 +1215,9 @@ while True:
 					pass
 				else:
 					raise exc
+			except vk_api.exceptions as exc:
+				if exc.code = 917:
+					pass
 		if random.randint(1, 20) == 1:
 			darkyspeak_random()
 		

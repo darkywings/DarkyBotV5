@@ -1,0 +1,15 @@
+{
+    "info": {
+        "short_version": "5.2",
+        "version": "5.2.0.0",
+        "last_update": null,
+        "commands_accepted": 0
+    },
+    "config": {
+        "access_token": null
+    },
+    "admin_users": [
+        507365405
+    ],
+    "commands_config": {}
+}

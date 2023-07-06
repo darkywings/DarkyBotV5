@@ -793,6 +793,7 @@ def easy_commands(): #простенькие команды по типу при
 
 
 def init_command(): #инициализация команды
+	global botInfo
 	darky_resp = ''
 	darky_attachments = ''
 	bot_reply = False

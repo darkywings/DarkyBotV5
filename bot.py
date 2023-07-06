@@ -1052,7 +1052,7 @@ while True:
 						pass
 					else:
 						raise exc
-				except vk_api.exceptions as exc:
+				except vk_api.exceptions.ApiError as exc:
 					if exc.code == 917:
 						pass
 			
@@ -1215,7 +1215,7 @@ while True:
 					pass
 				else:
 					raise exc
-			except vk_api.exceptions as exc:
+			except vk_api.exceptions.ApiError as exc:
 				if exc.code == 917:
 					pass
 		if random.randint(1, 20) == 1:

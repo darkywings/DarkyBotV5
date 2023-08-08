@@ -412,7 +412,7 @@ class chat: #работа с беседой и её участниками
 						if not list(list(chatSettings[list(chatSettings)[i]]["members"]))[u].startswith("-"):
 							registered_users += 1
 			out += str(registered_users) + "\n"
-			out += "🔹Обработано команд: " + str(botInfo["commands"]) + "\n"
+			out += "🔹Обработано запросов: " + str(botInfo["commands"]) + "\n"
 		elif id < 0:
 			raise darkyExceptions.DarkyError(8)
 		return out
@@ -450,11 +450,11 @@ class chat: #работа с беседой и её участниками
 		#проверка причины если такая указана
 		#если пользователь в чате - кик
 		if bot.is_chat_member(vk, event, id, chat_members):
-			chat.kick(vk, event, command_args, chatSettings)
 			response = '⚠️Вы были исключены из беседы "' + chatSettings[str(event.chat_id)]["chat_info"]["title"] + '" так как получили в ней бан'
 			if reason != "":
 				response += "\n❗Причина: " + reason
-			bot.send_mess(vk, peer_ids = id, text = response)
+			bot.send_mess(vk, peer_ids = event.obj.message['peer_id'], text = response)
+			chat.kick(vk, event, command_args, chatSettings)
 		#запись в настройки о том что этот пользователь был забанен
 		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != True:
 			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = True

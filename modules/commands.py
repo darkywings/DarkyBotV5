@@ -456,8 +456,8 @@ class chat: #работа с беседой и её участниками
 			bot.send_mess(vk, peer_ids = event.obj.message['peer_id'], text = response)
 			chat.kick(vk, event, command_args, chatSettings)
 		#запись в настройки о том что этот пользователь был забанен
-		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != True:
-			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = True
+		if chatSettings[str(event.chat_id)]["members"][str(id)] != {"is_banned": True}:
+			chatSettings[str(event.chat_id)]["members"][str(id)] = {"is_banned": True}
 		else:
 			raise darkyExceptions.DarkyError(200)
 		return chatSettings
@@ -469,7 +469,7 @@ class chat: #работа с беседой и её участниками
 		if str(id) not in chatSettings[str(event.chat_id)]["members"]:
 			raise darkyExceptions.DarkyError(102)
 		if chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] != False:
-			chatSettings[str(event.chat_id)]["members"][str(id)]["is_banned"] = False
+			chatSettings[str(event.chat_id)]["members"][str(id)] = chat_settings.reg_user_in_chat()
 		else:
 			raise darkyExceptions.DarkyError(201)
 		return chatSettings

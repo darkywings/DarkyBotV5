@@ -690,8 +690,7 @@ class roleplay:
 			rand_chat = random.choice(list(chatSettings))
 		if chatSettings[rand_chat]["chat_settings"]["bot_rp"] == True:
 			#поулчение рандомного участника из беседы
-			chat_members = vk.messages.getConversationMembers(peer_id=2000000000 + int(rand_chat))
-			rand_member = chat_members["items"][random.randint(0, chat_members["count"] - 1)]["member_id"]
+			rand_member = int(random.choice(list(chatSettings[rand_chat]["members"])))
 			if str(rand_member) in userSettings and userSettings[str(rand_member)]["rp_access"] in ['off', 'only_users']:
 				raise darkyExceptions.DarkyError(454)
 			if rand_member > 0:

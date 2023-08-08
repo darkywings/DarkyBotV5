@@ -475,8 +475,8 @@ class chat: #работа с беседой и её участниками
 		return chatSettings
 	
 	def unban_all(event, chatSettings): #разбан всех пользователей в беседе
-		for curr_member in range(len(list(chatSettings[str(event.chat_id)]["members"]))):
-			chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[curr_member]]["is_banned"] = False
+		for curr_member in range(len(list(chatSettings[str(event.chat_id)]["members"]))) and chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[curr_member]] == {"is_banned": True}:
+			chatSettings[str(event.chat_id)]["members"][list(chatSettings[str(event.chat_id)]["members"])[curr_member]]["is_banned"] = chat_settings.reg_user_in_chat()
 		return chatSettings
 	
 	def get_banned_list(members): #получить список забаненных

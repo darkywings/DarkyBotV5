@@ -370,16 +370,16 @@ def execute_command(command, command_args): #выполнение команды
 				if command_args.split('; ')[0] in ["add", "del", "rename", "edit"]:
 					if command_args.split('; ')[0] == "add":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.add(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						darky_resp = "✅Заметка внесена в список с идентификатором " + str(userSettings[str(event.obj.message["from_id"])]["notes"][-1]["id"])
+						darky_resp = "✅Заметка внесена в список с идентификатором " + str(userSettings[str(event.obj.message["from_id"])]["notes"][-1]["id"]) + "\n❕Используйте его для просмотра подробнностей или управления заметкой"
 					elif command_args.split('; ')[0] == "del":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.delete(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - удалена'
+						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' была удалена'
 					elif command_args.split('; ')[0] == "rename":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.rename(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' - переименнована'
+						darky_resp = "✅Заметка с идентификатором " + command_args.split('; ')[1] + ' была переименована'
 					elif command_args.split('; ')[0] == "edit":
 						userSettings[str(event.obj.message["from_id"])]["notes"] = commands.notes.edit(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
-						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' - изменено'
+						darky_resp = "✅Описание заметки с идентификатором " + command_args.split('; ')[1] + ' было изменено'
 				else:
 					darky_resp = commands.notes.get(userSettings[str(event.obj.message["from_id"])]["notes"], command_args)
 			else:
@@ -412,7 +412,7 @@ def execute_command(command, command_args): #выполнение команды
 						chatSettings[str(event.chat_id)]["command_assocs"] = {}
 					else:
 						userSettings[str(event.obj.message["from_id"])]["command_assocs"] = {}
-					darky_resp = '✅Все ассоциации - удалены'
+					darky_resp = '✅Все ассоциации были удалены'
 			else:
 				raise darkyExceptions.DarkyError(250)
 		elif str(event.chat_id) not in chatSettings:
@@ -424,7 +424,7 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.set(vk, event, chatSettings)
-							darky_resp = '✅Приветствие установлено'
+							darky_resp = '✅Приветствие беседы было установлено'
 						else:
 							raise darkyExceptions.DarkyError(3)
 					else:
@@ -433,7 +433,7 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.greeting.delete(event, chatSettings)
-							darky_resp = '✅Приветствие удалено'
+							darky_resp = '✅Приветствие беседы было удалено'
 						else:
 							raise darkyExceptions.DarkyError(3)
 					else:
@@ -464,7 +464,7 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.rules.set(event, chatSettings)
-							darky_resp = '✅Правила установлены'
+							darky_resp = '✅Правила беседы были установлены'
 						else:
 							raise darkyExceptions.DarkyError(3)
 					else:
@@ -473,7 +473,7 @@ def execute_command(command, command_args): #выполнение команды
 					if bot_is_admin == True:
 						if user_is_admin == True or event.obj.message['from_id'] in botSettings['admin_users']:
 							chatSettings = commands.rules.delete(event, chatSettings)
-							darky_resp = '✅Правила удалены'
+							darky_resp = '✅Правила беседы были удалены'
 						else:
 							raise darkyExceptions.DarkyError(3)
 					else:
@@ -492,7 +492,7 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(3)
 					try:
 						commands.chat.kick(vk, event, command_args, chatSettings)
-						darky_resp = '✅Пользователь - исключён'
+						darky_resp = '✅Данный пользователь был исключён'
 					except vk_api.exceptions.ApiError as exc:
 						if exc.code == 15:
 							raise darkyExceptions.DarkyError(11)
@@ -537,7 +537,7 @@ def execute_command(command, command_args): #выполнение команды
 								raise darkyExceptions.DarkyError(3)
 						try:
 							chatSettings = commands.chat.ban(vk, event, command_args, chatSettings)
-							darky_resp = '✅Пользователь - забанен'
+							darky_resp = '✅Данный пользователь был забанен'
 						except vk_api.exceptions.ApiError as exc:
 							if exc.code == 15:
 								raise darkyExceptions.DarkyError(11)
@@ -555,10 +555,10 @@ def execute_command(command, command_args): #выполнение команды
 							raise darkyExceptions.DarkyError(3)
 					if command_args == 'all':
 						chatSettings = commands.chat.unban_all(event, chatSettings)
-						darky_resp = '✅Все баны в этой беседе сняты'
+						darky_resp = '✅Все баны в этой беседе были сняты'
 					else:
 						chatSettings = commands.chat.unban(event, command_args, chatSettings)
-						darky_resp = '✅Пользователь - разбанен'
+						darky_resp = '✅Данный пользователь был разбанен'
 				else:
 					raise darkyExceptions.DarkyError(2)
 			else:
@@ -593,7 +593,7 @@ def execute_command(command, command_args): #выполнение команды
 						darky_resp = '✅Все предупреждения в беседе были сняты'
 					else:
 						chatSettings = commands.chat.unwarn(vk, event, command_args, chatSettings)
-						darky_resp = '✅Предупреждение было снято'
+						darky_resp = '✅Одно предупреждение для указанного пользователя было снято'
 				else:
 					raise darkyExceptions.DarkyError(2)
 			else:
@@ -699,10 +699,10 @@ def execute_command(command, command_args): #выполнение команды
 								nick = '[id' + str(id) + '|' + command_args.split('; ')[1] + ']'
 							else:
 								nick = command_args.split('; ')[1]
-							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' теперь - ' + nick
+							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' был изменен на: ' + nick
 						elif command_args == "del":
 							chatSettings[str(event.chat_id)]["members"] = commands.nicknames.delete(id, chatSettings[str(event.chat_id)]["members"])
-							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' - удалён'
+							darky_resp = '✅Никнейм пользователя ' + vk.users.get(user_ids=id)[0]["first_name"] + ' был удалён'
 					else:
 						raise darkyExceptions.DarkyError(253)
 				else:
@@ -723,7 +723,7 @@ def execute_command(command, command_args): #выполнение команды
 						if user_is_admin == False and event.obj.message['from_id'] not in botSettings['admin_users']:
 							raise darkyExceptions.DarkyError(3)
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.add(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
-					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - добавлена'
+					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' была добавлена'
 				else:
 					raise darkyExceptions.DarkyError(250)
 			else:
@@ -737,7 +737,7 @@ def execute_command(command, command_args): #выполнение команды
 						if user_is_admin == False and event.obj.message['from_id'] not in botSettings['admin_users']:
 							raise darkyExceptions.DarkyError(3)
 					chatSettings[str(event.chat_id)]["rp_commands"] = commands.roleplay.delete(command_args, chatSettings[str(event.chat_id)]["rp_commands"])
-					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' - удалена'
+					darky_resp = '✅РП команда ' + command_args.split('; ')[0].lower().lstrip(' ').rstrip(' ') + ' была удалена'
 				else:
 					raise darkyExceptions.DarkyError(250)
 			else:
@@ -793,7 +793,6 @@ def easy_commands(): #простенькие команды по типу при
 
 
 def init_command(): #инициализация команды
-	global botInfo
 	darky_resp = ''
 	darky_attachments = ''
 	bot_reply = False
@@ -948,7 +947,6 @@ def init_command(): #инициализация команды
 			darky_resp += "\n" + str(bot_timer.stop()) + " sec."
 		bot.send_mess(vk, peer_ids=event.obj.message['peer_id'], text=darky_resp, attachments=darky_attachments)
 		visual.print_botEvent(event, command + ' ' + command_args + ', ' + str(bot_timer.stop()) + ' sec.')
-		botInfo["commands"] += 1
 					
 			
 
@@ -960,18 +958,14 @@ bd_date = 'null' #предотвращает ошибку в commands.easter_egg
 #основной цикл
 while True:
 	try:
-		for event in botlongpoll.listen():
-			
-			
-			botInfo = json_objects.load(BOT_INFO)
-			
+		for event in botlongpoll.listen():		
 			
 			
 			if botInfo is None:
 				visual.reprint('загрузка botInfo...')
 				botInfo = json_objects.load(BOT_INFO)
 			
-			
+			botInfo["commands"] += 1
 			
 			if chatSettings is None:
 				visual.reprint('загрузка chatSettings...')

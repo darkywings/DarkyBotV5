@@ -590,11 +590,14 @@ class roleplay:
 			user = vk.users.get(user_ids=id, fields="sex")[0]
 			sex = user["sex"]
 			#проверка есть ли у этого пользователя никнейм
-			if str(id) in chat_obj["members"] and chat_obj["members"][str(id)]["nickname"] != "" and chat_obj["chat_settings"]["nicknames"] == True:
+			if str(id) in chat_obj["members"] and chat_obj["chat_settings"]["nicknames"] == True and chat_obj["members"][str(id)] != {"is_banned": True} and chat_obj["members"][str(id)]["nickname"] != "":
 				username = chat_obj["members"][str(id)]["nickname"]
 			else:
 				#получение его имени и фамилии
 				username = user["first_name"] + ' ' + user["last_name"]
+		elif id == -192784148:
+			username = "Дарки-бот"
+			sex = 2
 		elif id < 0:
 			#получение названия группы
 			username = vk.groups.getById(group_id=-id)[0]["name"]

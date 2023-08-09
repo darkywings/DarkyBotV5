@@ -62,15 +62,7 @@ class bot:
 		#cs_users_list - объект, список пользователей в настройках беседы
 		#поиск настоящего идентификатора пользователя по никнейму/id/ответу/пересланному сообщению
 		id_founded = False
-		if event.obj.message["fwd_messages"] != []:
-			#извлекание идентификатора из пересланного сообщения
-			id = event.obj.message["fwd_messages"][0]["from_id"]
-			id_founded = True
-		elif id_founded == False and "reply_message" in event.obj.message:
-			#извлекание идентификатора из ответа(обрабатывается поскольку "reply_message" бывает отсутствует)
-			id = event.obj.message["reply_message"]["from_id"]
-			id_founded = True
-		elif id_founded == False and user != "":
+		if user != "":
 			if user.startswith('[id'):
 				#упоминания вк всегда выглядят как [id<id>|<text>]
 				#парсинг информации
@@ -94,6 +86,14 @@ class bot:
 				if ready != False:
 					id = int(list(cs_users_list)[curr_user])
 					id_founded = True
+		elif id_founded == False and event.obj.message["fwd_messages"] != []:
+			#извлекание идентификатора из пересланного сообщения
+			id = event.obj.message["fwd_messages"][0]["from_id"]
+			id_founded = True
+		elif id_founded == False and "reply_message" in event.obj.message:
+			#извлекание идентификатора из ответа(обрабатывается поскольку "reply_message" бывает отсутствует)
+			id = event.obj.message["reply_message"]["from_id"]
+			id_founded = True
 		if id_founded == True:
 			return id
 		else:

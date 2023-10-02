@@ -104,13 +104,13 @@ class bot:
 			chat_members = vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
 		id_founded = False
 		if id > 0:
-			for curr_mem in chat_members["profiles"]:
-				if curr_mem["id"] == id:
+			for curr_mem in range(len(list(chat_members["profiles"]))):
+				if chat_members["profiles"][curr_mem]["id"] == id:
 					id_founded = True
 					break
 		elif id < 0:
-			for curr_mem in chat_members["groups"]:
-				if curr_mem["id"] == id:
+			for curr_mem in range(len(list(chat_members["groups"]))):
+				if chat_members["groups"][curr_mem]["id"] == id:
 					id_founded = True
 					break
 		return id_founded

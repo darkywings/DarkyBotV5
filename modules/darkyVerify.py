@@ -1,116 +1,116 @@
-import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+import os
+import xml.etree.ElementTree as ET
+import requests
+import datetime
 from modules import darkyExceptions
-from vk_api.utils import get_random_id
+import vk_api
 
-
-class bot:
+class darky_verify: #система верификации пользователя
 	
-	def auth(group_id, group_token):
-		#group_id - id группы без минуса спереди.
-		#token - токен сообщества
-		vk_session = vk_api.VkApi(token=group_token) #авторизация как сообщество
-		botlongpoll = VkBotLongPoll(vk_session, group_id)
-		vk = vk_session.get_api()
-		return botlongpoll, vk
-	
-	def typing_state(vk, event): #установка статуса тайпинга
-		#event - событие от вк
-		#vk - api полученный в результате авторизации
-		vk.messages.setActivity(
-			type = 'typing',
-			peer_id = event.obj.message['peer_id']
-		)
-	
-	def send_mess(vk, peer_ids=None, text='', attachments=''): #отправка сообщения
-		#peer_ids - id бесед(-ы) или пользователя(-ей) куда будет отправлено сообщение
-			#пользователи - положительные числа меньше 2000000000
-			#беседы - положительные числа больше 2000000000
-			#группы - отрицательные числа
-		#text - текст сообщения
-		#attachments - вложения.
-		# !!!необходимо указывать название параметров при вызове функции(кроме vk)
-		if peer_ids is None:
-			raise darkyExceptions.DarkyError(9)
-		else:
-			vk.messages.send(
-				peer_ids = peer_ids,
-				random_id = get_random_id(),
-				message = text,
-				attachment = attachments
-			)
-	
-	def bot_admin_check(vk, event): #проверка админки у бота(не особо используется, но хранится на всякий случай)
-		try:
-			vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
-			return True
-		except vk_api.exceptions.ApiError:
-			raise darkyExceptions.DarkyError(2)
-	
-	def user_admin_check(vk, chat_id, member_id): #проверяет админку у пользователя(также как и с админкой у бота)
-		user_is_admin = False
-		members_list = vk.messages.getConversationMembers(peer_id = 2000000000 + chat_id)
-		for current_member in range(members_list["count"]):
-			if members_list["items"][current_member]["member_id"] == id:
-				try:
-					user_is_admin = members_list["items"][current_member]["is_admin"]
-				except:
-					user_is_admin = False
-		return user_is_admin
-	
-	def search_id(event, user, cs_users_list={}): #поиск id пользователя
-		#cs_users_list - объект, список пользователей в настройках беседы
-		#поиск настоящего идентификатора пользователя по никнейму/id/ответу/пересланному сообщению
-		id_founded = False
-		if user != "":
-			if user.startswith('[id'):
-				#упоминания вк всегда выглядят как [id<id>|<text>]
-				#парсинг информации
-				id = int(user.split('|')[0].lstrip('[id'))
-				id_founded = True
-			elif user.startswith('[club'):
-				#парсинг информации вида [club<group_id>|<text>]
-				id = -int(user.split('|')[0].lstrip('[club'))
-				id_founded = True
-			elif user.isdigit() == True:
-				if int(user) > -999999999 and int(user) < 999999999:
-					id = int(user)
-					id_founded = True
-			elif cs_users_list != {}:
-				#поиск по никнейму
-				ready = False
-				for curr_user in range(len(list(cs_users_list))):
-					if cs_users_list[list(cs_users_list)[curr_user]]["nickname"] == user:
-						ready = True
-						break
-				if ready != False:
-					id = int(list(cs_users_list)[curr_user])
-					id_founded = True
-		elif id_founded == False and event.obj.message["fwd_messages"] != []:
-			#извлекание идентификатора из пересланного сообщения
-			id = event.obj.message["fwd_messages"][0]["from_id"]
-			id_founded = True
-		elif id_founded == False and "reply_message" in event.obj.message:
-			#извлекание идентификатора из ответа(обрабатывается поскольку "reply_message" бывает отсутствует)
-			id = event.obj.message["reply_message"]["from_id"]
-			id_founded = True
-		if id_founded == True:
-			return id
-		else:
-			raise darkyExceptions.DarkyError(6)
-
-	def is_chat_member(vk, event, id, chat_members=None): #является ли id учатсником беседы
-		if chat_members == None:
-			chat_members = vk.messages.getConversationMembers(peer_id = 2000000000 + event.chat_id)
-		id_founded = False
+	def check(vk, id, dayscheck=0, groupcheck=[], path=None): #проверка количества друзей, групп и тд.
+		#id - int, идентификатор пользователя, должен быть больше 0
+		#dayscheck - int, параметр проверки длительности существования аккаунта(0 - выкл.)
+		#args - list, список элементов которые нужно проверить
+		#path - str, путь к папке с ботом
 		if id > 0:
-			for curr_mem in chat_members["profiles"]:
-				if curr_mem["id"] == id:
-					id_founded = True
-					break
-		elif id < 0:
-			for curr_mem in chat_members["groups"]:
-				if curr_mem["id"] == id:
-					id_founded = True
-					break
-		return id_founded
+			if groupcheck != []:
+				for i in range(len(groupcheck)):
+					#проверка наличия пользователя в группе
+					if vk.groups.isMember(group_id=groupcheck[i], user_id=id) == 0:
+						raise darkyExceptions.DarkyError(304)
+			if False:
+				#обработка xml перед сохранением в файл ибо при парсинге возникали ошибки
+				doc = requests.get('https://vk.com/foaf.php?id=' + str(id))
+				doc = doc.text.replace('--', '').replace('<foaf:Image', '<!--?<foaf:Image').replace('</foaf:Image>', '</foaf:Image>?-->').replace('И', 'и')
+				with open(path + '/foaf.xml', 'w') as xmldoc:
+					xmldoc.write(doc)
+					xmldoc.close()
+				user = ET.ElementTree(file=path + '/foaf.xml').getroot()
+				os.remove(path + '/foaf.xml')
+				#парсинг даты регистрации
+				for i in user.iter('{http://blogs.yandex.ru/schema/foaf/}created'):
+					reg_date = i.attrib['{http://purl.org/dc/elements/1.1/}date']
+				reg_date = reg_date.split('T')[0].split('-')
+				#получение текущей даты
+				curr_date = datetime.datetime.now().strftime('%Y-%m-%d').split('-')
+				#вычисление разницы в датах
+				#проверка разницы в годах
+				if int(curr_date[0]) - int(reg_date[0]) < 1:
+					#проверка разницы в месяцах
+					if int(curr_date[1]) - int(reg_date[1]) < 1:
+						#проверка дней
+						if int(curr_date[2]) - int(reg_date[2]) < dayscheck:
+							raise darkyExceptions.DarkyError(300)
+			return True
+		else:
+			raise darkyExceptions.DarkyError(8)
+	
+	def display_settings(verify_sys):
+		result = '⚙️Настройки системы DarkyVerify:\n'
+		result += '🔹Статус: ' + str(verify_sys["status"]).replace('True', '✅Вкл.').replace('False', '❌Выкл.') + '\n'
+		result += '🔹Наказание: ' + verify_sys["punishment"].replace('kick', '❕Кик❕').replace('ban', '❗Бан❗') + '\n'
+		result += '🔹Насколько давно должен быть создан аккаунт:\nНе менее ' + str(verify_sys["days_check"]) + ' дней назад\n'
+		if verify_sys["group_check"] != []:
+			result += '🔹Участник должен быть в '
+			if len(verify_sys["group_check"]) > 1:
+				result += 'группах: \n'
+			else:
+				result += 'группе: \n'
+			for i in range(len(verify_sys["group_check"])):
+				result += 'https://vk.com/club' + str(verify_sys["group_check"][i]) + '\n'
+		return result
+	
+	def change_setting(vk, verify_sys, command_args): #управление настройками DarkyVerify
+		#проверка наличия указанного параметра
+		if command_args.split('; ')[0] in verify_sys:
+			param_name = command_args.split('; ')[0]
+			param_value = command_args.split('; ')[1]
+			#проверка сходств классов значений
+			#проверка параметра на сходство с boolean
+			if param_value.lower() in ['true', 'false']:
+				if param_value.lower() == 'true':
+					param_value = True
+				elif param_value.lower() == 'false':
+					param_value = False
+			#проверка параметра на сходство с integer
+			elif param_value.isdigit() == True:
+				param_value = int(param_value)
+			else:
+				param_value = str(param_value)
+			#определение идентификатора группы для group_check если было передано короткое имя или ссылка
+			if param_name == "group_check" and param_value not in ["-", ".", 0, False]:
+				if "," in param_value:
+					param_value_list = param_value.split(',')
+				else:
+					param_value_list = [param_value]
+				if len(param_value_list) > 4:
+					raise darkyExceptions.DarkyError(504)
+				param_value = []
+				for i in range(len(param_value_list)):
+					if '/' in param_value_list[i]:
+						param_value_cache = param_value_list[i].split('/')[-1].replace(' ', '')
+					else:
+						param_value_cache = param_value_list[i].replace(' ', '')
+					try:
+						group_id_cache = vk.groups.getById(group_id=param_value_cache)[0]["id"]
+						param_value.append(group_id_cache)
+					except vk_api.exceptions.ApiError as exc:
+						if exc.code == 100:
+							raise darkyExceptions.DarkyError(503)
+			elif param_name == "group_check" and param_value in ["-", ".", 0, False]: #отключение параметра group_check
+				param_value = []
+			#сравнение классов старого и нового значений
+			if type(param_value) == type(verify_sys[param_name]):
+				#проверка доступности значений
+				if param_name == "days_check":
+					if param_value not in range(1, 7):
+						raise darkyExceptions.DarkyError(502)
+				if param_name == "punishment":
+					if param_value not in ["kick", "ban"]:
+						raise darkyExceptions.DarkyError(502)
+				verify_sys[param_name] = param_value
+				return verify_sys
+			else:
+				raise darkyExceptions.DarkyError(501)
+		else:
+			raise darkyExceptions.DarkyError(500)

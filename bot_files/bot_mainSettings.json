@@ -1,17 +1,12 @@
 {
     "settings": {
-        "testing_mode": true,
+        "testing_mode": false,
         "testing_ids": [
-            507365405,
-            2000000004,
-            305438383
         ],
         "upd_gr_acskeys": 50,
         "exc_msg": true,
-        "timer_debug": true
+        "timer_debug": false
     },
     "admin_users": [
-        507365405,
-        305438383
     ]
 }
